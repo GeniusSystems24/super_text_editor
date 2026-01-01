@@ -44,7 +44,16 @@ export 'src/presentation/editor/super_editor_controller.dart';
 export 'src/presentation/toolbar/editor_toolbar.dart';
 export 'src/presentation/toolbar/toolbar_button.dart';
 
+// Presentation - Toolbar Extras
+export 'src/presentation/toolbar/font_size_selector.dart';
+
 // Presentation - Dialogs
+export 'src/presentation/dialogs/code_block_dialog.dart';
+export 'src/presentation/dialogs/emoji_picker_dialog.dart';
 export 'src/presentation/dialogs/image_dialog.dart';
 export 'src/presentation/dialogs/link_dialog.dart';
+export 'src/presentation/dialogs/special_characters_dialog.dart';
 export 'src/presentation/dialogs/table_dialog.dart';
+
+// Core - Utilities
+export 'src/core/utils/html_parser.dart';

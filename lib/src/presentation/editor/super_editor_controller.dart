@@ -341,6 +341,54 @@ class SuperEditorController extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Inserts a code block
+  void insertCodeBlock(String code, {String? language}) {
+    _saveUndoState();
+    final selection = _textController.selection;
+    if (selection.isValid) {
+      final text = _textController.text;
+      final langLabel = language != null ? ' ($language)' : '';
+      final codeBlockText = '\n```$langLabel\n$code\n```\n';
+      final newText = '${text.substring(0, selection.start)}'
+          '$codeBlockText'
+          '${text.substring(selection.end)}';
+      _textController.text = newText;
+      _textController.selection = TextSelection.collapsed(
+        offset: selection.start + codeBlockText.length,
+      );
+    }
+    notifyListeners();
+  }
+
+  /// Inserts a special character or emoji at cursor position
+  void insertText(String textToInsert) {
+    _saveUndoState();
+    final selection = _textController.selection;
+    if (selection.isValid) {
+      final text = _textController.text;
+      final newText = '${text.substring(0, selection.start)}'
+          '$textToInsert'
+          '${text.substring(selection.end)}';
+      _textController.text = newText;
+      _textController.selection = TextSelection.collapsed(
+        offset: selection.start + textToInsert.length,
+      );
+    }
+    notifyListeners();
+  }
+
+  /// Sets the font size
+  void setFontSize(double? size) {
+    _saveUndoState();
+    _state = _state.copyWith(
+      currentStyle: _state.currentStyle.withFontSize(size),
+    );
+    notifyListeners();
+  }
+
+  /// Gets the current font size
+  double? get currentFontSize => _state.currentStyle.fontSize;
+
   /// Sets the content from HTML
   void setHtml(String html) {
     _saveUndoState();

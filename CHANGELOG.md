@@ -1,3 +1,60 @@
+## 0.2.0
+
+### New Features
+
+#### Code Block Support
+- **Code Block Dialog** (`CodeBlockDialog`)
+  - Insert code blocks with syntax highlighting support
+  - Language selector with 25+ programming languages
+  - Syntax highlighting ready (Dart, JavaScript, Python, Java, etc.)
+
+#### Emoji Picker
+- **Emoji Picker Dialog** (`EmojiPickerDialog`)
+  - 8 emoji categories (Smileys, People, Animals, Food, Travel, Activities, Objects, Symbols)
+  - Search functionality
+  - Category tabs for easy navigation
+  - 80+ emojis per category
+
+#### Special Characters
+- **Special Characters Dialog** (`SpecialCharactersDialog`)
+  - 7 character categories (Common, Currency, Math, Arrows, Latin, Greek, Punctuation)
+  - Hover preview
+  - Tab navigation
+  - 20+ characters per category
+
+#### Font Size Control
+- **Font Size Selector** (`FontSizeSelector`)
+  - Predefined sizes (8-72px)
+  - Default size option
+  - Dropdown selector in toolbar
+
+#### HTML Parser
+- **HTML Parser Utility** (`HtmlParser`)
+  - Parse HTML to EditorNodes
+  - Convert EditorNodes to HTML
+  - Extract text formatting from HTML
+  - Support for inline styles (colors, fonts)
+
+### Improvements
+
+- Enhanced toolbar with new buttons for all new features
+- Updated `EditorToolbarConfig` with new options:
+  - `showFontSize` - Font size selector
+  - `showCodeBlock` - Code block button
+  - `showEmoji` - Emoji picker button
+  - `showSpecialChars` - Special characters button
+- New controller methods:
+  - `insertCodeBlock(code, language)` - Insert code block
+  - `insertText(text)` - Insert text/emoji/special char at cursor
+  - `setFontSize(size)` - Set font size
+  - `currentFontSize` getter
+
+### Documentation
+- Updated README with new features
+- Added examples for new dialogs
+
+---
+
 ## 0.1.0
 
 ### Initial Release

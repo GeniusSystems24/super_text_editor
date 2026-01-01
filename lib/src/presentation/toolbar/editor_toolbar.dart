@@ -14,6 +14,9 @@ class EditorToolbarConfig {
   /// Whether to show paragraph style dropdown
   final bool showParagraphStyle;
 
+  /// Whether to show font size selector
+  final bool showFontSize;
+
   /// Whether to show text formatting buttons
   final bool showTextFormatting;
 
@@ -41,8 +44,17 @@ class EditorToolbarConfig {
   /// Whether to show table button
   final bool showTable;
 
+  /// Whether to show code block button
+  final bool showCodeBlock;
+
   /// Whether to show horizontal rule button
   final bool showHorizontalRule;
+
+  /// Whether to show emoji button
+  final bool showEmoji;
+
+  /// Whether to show special characters button
+  final bool showSpecialChars;
 
   /// Whether to show clear formatting button
   final bool showClearFormatting;
@@ -54,6 +66,7 @@ class EditorToolbarConfig {
   const EditorToolbarConfig({
     this.showUndoRedo = true,
     this.showParagraphStyle = true,
+    this.showFontSize = true,
     this.showTextFormatting = true,
     this.showTextColor = true,
     this.showHighlightColor = true,
@@ -63,7 +76,10 @@ class EditorToolbarConfig {
     this.showLink = true,
     this.showImage = true,
     this.showTable = true,
+    this.showCodeBlock = true,
     this.showHorizontalRule = true,
+    this.showEmoji = true,
+    this.showSpecialChars = true,
     this.showClearFormatting = true,
     this.showSourceCode = false,
   });
@@ -74,13 +90,17 @@ class EditorToolbarConfig {
   /// Basic toolbar with only text formatting
   static const EditorToolbarConfig basic = EditorToolbarConfig(
     showParagraphStyle: false,
+    showFontSize: false,
     showAlignment: false,
     showLists: false,
     showIndent: false,
     showLink: false,
     showImage: false,
     showTable: false,
+    showCodeBlock: false,
     showHorizontalRule: false,
+    showEmoji: false,
+    showSpecialChars: false,
     showSourceCode: false,
   );
 
@@ -88,6 +108,7 @@ class EditorToolbarConfig {
   static const EditorToolbarConfig minimal = EditorToolbarConfig(
     showUndoRedo: false,
     showParagraphStyle: false,
+    showFontSize: false,
     showTextColor: false,
     showHighlightColor: false,
     showAlignment: false,
@@ -96,7 +117,10 @@ class EditorToolbarConfig {
     showLink: false,
     showImage: false,
     showTable: false,
+    showCodeBlock: false,
     showHorizontalRule: false,
+    showEmoji: false,
+    showSpecialChars: false,
     showClearFormatting: false,
     showSourceCode: false,
   );
@@ -119,6 +143,15 @@ class EditorToolbar extends StatelessWidget {
   /// Callback when table insertion is requested
   final VoidCallback? onInsertTable;
 
+  /// Callback when code block insertion is requested
+  final VoidCallback? onInsertCodeBlock;
+
+  /// Callback when emoji insertion is requested
+  final VoidCallback? onInsertEmoji;
+
+  /// Callback when special character insertion is requested
+  final VoidCallback? onInsertSpecialChar;
+
   /// Callback when source code view is toggled
   final VoidCallback? onToggleSource;
 
@@ -133,6 +166,9 @@ class EditorToolbar extends StatelessWidget {
     this.onInsertLink,
     this.onInsertImage,
     this.onInsertTable,
+    this.onInsertCodeBlock,
+    this.onInsertEmoji,
+    this.onInsertSpecialChar,
     this.onToggleSource,
     this.isSourceView = false,
   });
@@ -354,6 +390,16 @@ class EditorToolbar extends StatelessWidget {
       );
     }
 
+    if (config.showCodeBlock) {
+      items.add(
+        ToolbarButton(
+          icon: Icons.code,
+          tooltip: 'Insert Code Block',
+          onPressed: onInsertCodeBlock,
+        ),
+      );
+    }
+
     if (config.showHorizontalRule) {
       items.add(
         ToolbarButton(
@@ -364,10 +410,33 @@ class EditorToolbar extends StatelessWidget {
       );
     }
 
+    if (config.showEmoji) {
+      items.add(
+        ToolbarButton(
+          icon: Icons.emoji_emotions,
+          tooltip: 'Insert Emoji',
+          onPressed: onInsertEmoji,
+        ),
+      );
+    }
+
+    if (config.showSpecialChars) {
+      items.add(
+        ToolbarButton(
+          icon: Icons.calculate,
+          tooltip: 'Special Characters',
+          onPressed: onInsertSpecialChar,
+        ),
+      );
+    }
+
     if (config.showLink ||
         config.showImage ||
         config.showTable ||
-        config.showHorizontalRule) {
+        config.showCodeBlock ||
+        config.showHorizontalRule ||
+        config.showEmoji ||
+        config.showSpecialChars) {
       items.add(const ToolbarDivider());
     }
 

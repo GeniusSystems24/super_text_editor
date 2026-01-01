@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import '../../domain/enums/paragraph_type.dart';
 import '../../domain/enums/text_alignment.dart';
+import '../dialogs/code_block_dialog.dart';
+import '../dialogs/emoji_picker_dialog.dart';
 import '../dialogs/image_dialog.dart';
 import '../dialogs/link_dialog.dart';
+import '../dialogs/special_characters_dialog.dart';
 import '../dialogs/table_dialog.dart';
 import '../toolbar/editor_toolbar.dart';
 import 'super_editor_controller.dart';
@@ -156,6 +159,9 @@ class _SuperEditorState extends State<SuperEditor> {
                 onInsertLink: _showLinkDialog,
                 onInsertImage: _showImageDialog,
                 onInsertTable: _showTableDialog,
+                onInsertCodeBlock: _showCodeBlockDialog,
+                onInsertEmoji: _showEmojiPicker,
+                onInsertSpecialChar: _showSpecialCharactersDialog,
                 onToggleSource: _toggleSource,
                 isSourceView: _showSource,
               ),
@@ -353,6 +359,30 @@ class _SuperEditorState extends State<SuperEditor> {
 
     if (result != null) {
       _controller.insertTable(result.rows, result.columns);
+    }
+  }
+
+  Future<void> _showCodeBlockDialog() async {
+    final result = await CodeBlockDialog.show(context);
+
+    if (result != null) {
+      _controller.insertCodeBlock(result.code, language: result.language);
+    }
+  }
+
+  Future<void> _showEmojiPicker() async {
+    final result = await EmojiPickerDialog.show(context);
+
+    if (result != null) {
+      _controller.insertText(result);
+    }
+  }
+
+  Future<void> _showSpecialCharactersDialog() async {
+    final result = await SpecialCharactersDialog.show(context);
+
+    if (result != null) {
+      _controller.insertText(result);
     }
   }
 }

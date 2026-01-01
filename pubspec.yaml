@@ -1,6 +1,6 @@
 name: super_text_editor
 description: "A powerful, customizable rich text editor for Flutter with comprehensive formatting options, tables, lists, and HTML support. Similar to CKEditor 5."
-version: 0.1.0
+version: 0.2.0
 homepage: https://github.com/GeniusSystems24/super_text_editor
 repository: https://github.com/GeniusSystems24/super_text_editor
 issue_tracker: https://github.com/GeniusSystems24/super_text_editor/issues
