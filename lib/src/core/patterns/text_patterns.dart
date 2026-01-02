@@ -264,9 +264,9 @@ class TextPatternMatcher {
       spans.add(TextSpan(
         text: pattern.text,
         style: baseStyle?.merge(patternStyle) ?? patternStyle,
-        recognizer: onPatternTap != null
-            ? (TapGestureRecognizer()..onTap = () => onPatternTap(pattern))
-            : null,
+        // recognizer: onPatternTap != null
+        //     ? (TapGestureRecognizer()..onTap = () => onPatternTap(pattern))
+        //     : null,
       ));
 
       currentIndex = pattern.end;
