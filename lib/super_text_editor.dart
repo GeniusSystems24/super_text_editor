@@ -1,8 +1,21 @@
-/// A powerful, customizable rich text editor for Flutter.
+/// A powerful native Flutter document editor with support for rich text,
+/// tables, lists, and more. Built on a Document/Node architecture without WebView.
 ///
-/// Super Text Editor provides a comprehensive rich text editing experience
-/// similar to CKEditor 5, with support for text formatting, lists, tables,
-/// images, links, and more.
+/// ## Features
+///
+/// - Document-based architecture (Document = List of Blocks/Nodes)
+/// - Rich text formatting: Bold, Italic, Underline, Strikethrough
+/// - Paragraph styles: Headings (H1-H6), Blockquote, Preformatted
+/// - Text alignment: Left, Center, Right, Justify
+/// - Lists: Bullet and Numbered lists
+/// - Tables: Insert via picker, add/remove rows/columns
+/// - Images and Horizontal rules
+/// - Links with URL support
+/// - Code blocks with language highlighting
+/// - Undo/Redo support
+/// - HTML import/export
+/// - JSON serialization
+/// - RTL support
 ///
 /// ## Getting Started
 ///
@@ -10,50 +23,58 @@
 /// import 'package:super_text_editor/super_text_editor.dart';
 ///
 /// // Basic usage
-/// SuperEditor(
+/// DocumentEditor(
 ///   placeholder: 'Start typing...',
-///   onChanged: (text) => print(text),
-///   onHtmlChanged: (html) => print(html),
+///   onChanged: () => print('Document changed'),
 /// )
 ///
 /// // With controller
-/// final controller = SuperEditorController();
-/// SuperEditor(controller: controller)
+/// final controller = DocumentEditorController();
+/// DocumentEditor(controller: controller)
 ///
-/// // Get HTML output
-/// final html = controller.html;
+/// // Export to HTML
+/// final htmlExporter = HtmlExporter();
+/// final html = htmlExporter.export(controller.document);
+///
+/// // Export to JSON
+/// final json = controller.document.toJson();
 /// ```
 library super_text_editor;
 
-// Domain - Enums
-export 'src/domain/enums/list_type.dart';
-export 'src/domain/enums/paragraph_type.dart';
-export 'src/domain/enums/text_alignment.dart';
-export 'src/domain/enums/text_format.dart';
+// Core - Document
+export 'src/core/document/document.dart';
+export 'src/core/document/nodes.dart';
+export 'src/core/document/attributed_text.dart';
 
-// Domain - Models
-export 'src/domain/models/editor_node.dart';
-export 'src/domain/models/editor_state.dart';
-export 'src/domain/models/text_style_model.dart';
+// Core - Selection
+export 'src/core/selection/editor_selection.dart';
 
-// Presentation - Editor
-export 'src/presentation/editor/super_editor.dart';
-export 'src/presentation/editor/super_editor_controller.dart';
+// Core - Commands
+export 'src/core/commands/editor_command.dart';
 
-// Presentation - Toolbar
-export 'src/presentation/toolbar/editor_toolbar.dart';
-export 'src/presentation/toolbar/toolbar_button.dart';
+// Core - History
+export 'src/core/history/undo_redo.dart';
 
-// Presentation - Toolbar Extras
-export 'src/presentation/toolbar/font_size_selector.dart';
+// UI - Editor
+export 'src/ui/editor/document_editor.dart';
 
-// Presentation - Dialogs
-export 'src/presentation/dialogs/code_block_dialog.dart';
-export 'src/presentation/dialogs/emoji_picker_dialog.dart';
-export 'src/presentation/dialogs/image_dialog.dart';
-export 'src/presentation/dialogs/link_dialog.dart';
-export 'src/presentation/dialogs/special_characters_dialog.dart';
-export 'src/presentation/dialogs/table_dialog.dart';
+// UI - Toolbar
+export 'src/ui/toolbar/editor_toolbar.dart';
 
-// Core - Utilities
-export 'src/core/utils/html_parser.dart';
+// UI - Components
+export 'src/ui/components/paragraph_component.dart';
+export 'src/ui/components/list_item_component.dart';
+export 'src/ui/components/table_component.dart';
+export 'src/ui/components/image_component.dart';
+export 'src/ui/components/horizontal_rule_component.dart';
+export 'src/ui/components/code_block_component.dart';
+
+// UI - Pickers
+export 'src/ui/pickers/table_size_picker.dart';
+
+// IO - HTML
+export 'src/io/html/html_exporter.dart';
+export 'src/io/html/html_importer.dart';
+
+// IO - JSON
+export 'src/io/json/document_serializer.dart';
