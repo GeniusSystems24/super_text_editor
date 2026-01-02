@@ -1,29 +1,37 @@
 # Super Text Editor
 
-A powerful, customizable rich text editor for Flutter with comprehensive formatting options, tables, lists, and HTML support. Similar to CKEditor 5.
+A powerful native Flutter document editor with support for rich text, tables, lists, and more. Built on a Document/Node architecture without WebView.
 
 [![pub package](https://img.shields.io/pub/v/super_text_editor.svg)](https://pub.dev/packages/super_text_editor)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
 ## Features
 
-- **Text Formatting**: Bold, italic, underline, strikethrough, subscript, superscript
-- **Colors**: Text color and background/highlight color
-- **Paragraphs**: Multiple heading levels (H1-H6), preformatted, blockquote
-- **Lists**: Bulleted lists and numbered lists with multiple styles (decimal, roman, alpha)
-- **Alignment**: Left, center, right, justify
-- **Insert Elements**: Links, images, tables, horizontal rules
-- **Undo/Redo**: Full history support
-- **HTML Output**: Get content as HTML or plain text
+- **Document-Based Architecture**: Document = List of Nodes (Blocks)
+- **Rich Text Formatting**: Bold, italic, underline, strikethrough, subscript, superscript
+- **Block Styles**: Headings (H1-H6), blockquote, preformatted
+- **Text Alignment**: Left, center, right, justify
+- **Lists**: Bullet and numbered lists with nesting
+- **Tables**: CKEditor-style grid picker, add/remove rows and columns
+- **Links & Images**: Insert and edit links, embed images
+- **Code Blocks**: With language support
+- **Undo/Redo**: Full history support with command pattern
+- **Import/Export**: HTML and JSON serialization
+- **RTL Support**: Right-to-left text direction
 - **Customizable Toolbar**: Configure which features to show
-- **Form Integration**: Works with Flutter's Form system
 - **Dark Mode**: Full support for light and dark themes
 
-## Screenshots
+## Architecture
 
-| Full Editor | List Styles | Table Insert |
-|-------------|-------------|--------------|
-| ![Editor](screenshots/editor.png) | ![Lists](screenshots/lists.png) | ![Table](screenshots/table.png) |
+```
+Document
+├── ParagraphNode (text, headings, blockquote)
+├── ListItemNode (bullet, numbered)
+├── TableNode (rows × columns of cells)
+├── ImageNode
+├── CodeBlockNode
+└── HorizontalRuleNode
+```
 
 ## Installation
 
@@ -31,7 +39,7 @@ Add this to your package's `pubspec.yaml` file:
 
 ```yaml
 dependencies:
-  super_text_editor: ^0.1.0
+  super_text_editor: ^1.0.0
 ```
 
 ## Usage
@@ -41,176 +49,288 @@ dependencies:
 ```dart
 import 'package:super_text_editor/super_text_editor.dart';
 
-// Simple editor
-SuperEditor(
-  placeholder: 'Start typing...',
-  onChanged: (text) => print(text),
-  onHtmlChanged: (html) => print(html),
-)
-```
+// Create a controller
+final controller = DocumentEditorController();
 
-### With Controller
-
-```dart
-final controller = SuperEditorController(
-  initialHtml: '<p>Hello <strong>World</strong>!</p>',
-);
-
-SuperEditor(
+// Use the editor
+DocumentEditor(
   controller: controller,
-  autofocus: true,
+  placeholder: 'Start typing...',
 )
-
-// Get HTML content
-final html = controller.html;
-
-// Get plain text
-final text = controller.plainText;
-
-// Set content
-controller.setHtml('<p>New content</p>');
-controller.setText('Plain text');
-
-// Format text
-controller.toggleFormat(TextFormat.bold);
-controller.setTextColor(Colors.red);
-controller.setParagraphType(ParagraphType.heading1);
 ```
 
-### Toolbar Configuration
+### With Initial Content
 
 ```dart
-// Full toolbar (default)
-SuperEditor(
-  toolbarConfig: EditorToolbarConfig.full,
-)
-
-// Basic toolbar (text formatting only)
-SuperEditor(
-  toolbarConfig: EditorToolbarConfig.basic,
-)
-
-// Minimal toolbar
-SuperEditor(
-  toolbarConfig: EditorToolbarConfig.minimal,
-)
-
-// Custom configuration
-SuperEditor(
-  toolbarConfig: EditorToolbarConfig(
-    showUndoRedo: true,
-    showTextFormatting: true,
-    showTextColor: true,
-    showAlignment: false,
-    showLists: false,
-    showTable: false,
+final document = Document([
+  ParagraphNode(
+    text: AttributedText.fromText('Welcome to Super Text Editor'),
+    blockType: BlockType.heading1,
   ),
+  ParagraphNode(
+    text: AttributedText.fromText('This is a paragraph with rich text support.'),
+  ),
+  ListItemNode.fromText('First item'),
+  ListItemNode.fromText('Second item'),
+  ListItemNode.fromText('Third item'),
+]);
+
+final controller = DocumentEditorController(document: document);
+
+DocumentEditor(
+  controller: controller,
 )
 ```
 
-### Form Integration
+### With Toolbar
 
 ```dart
-Form(
-  child: Column(
-    children: [
-      SuperEditorFormField(
-        labelText: 'Content',
-        minHeight: 200,
-        validator: (value) {
-          if (value == null || value.isEmpty) {
-            return 'Please enter content';
-          }
-          return null;
-        },
-        onSaved: (value) => _content = value ?? '',
+Column(
+  children: [
+    EditorToolbar(
+      controller: controller,
+      config: EditorToolbarConfig(
+        showTextFormatting: true,
+        showHeadings: true,
+        showAlignment: true,
+        showLists: true,
+        showTable: true,
+        showUndoRedo: true,
       ),
-    ],
-  ),
+      onInsertLink: () => _showLinkDialog(),
+      onInsertImage: () => _showImageDialog(),
+    ),
+    Expanded(
+      child: DocumentEditor(
+        controller: controller,
+      ),
+    ),
+  ],
 )
 ```
 
-### Full Screen Editor Page
+### Insert a Table
 
 ```dart
-// Show editor page
-final html = await SuperEditorPage.show(
-  context,
-  initialHtml: existingContent,
-  title: 'Edit Content',
-);
+// Using the controller
+controller.insertTable(3, 4); // 3 rows, 4 columns
 
-if (html != null) {
-  // User saved content
-  print(html);
+// Or show the table size picker
+final result = await TableSizePicker.show(context);
+if (result != null) {
+  controller.insertTable(result.rows, result.columns);
 }
+```
+
+### Text Formatting
+
+```dart
+// Toggle formatting
+controller.toggleBold();
+controller.toggleItalic();
+controller.toggleUnderline();
+controller.toggleStrikethrough();
+
+// Set alignment
+controller.setAlignment(TextAlign.center);
+
+// Set block type
+controller.setBlockType(BlockType.heading1);
+
+// Toggle lists
+controller.toggleBulletList();
+controller.toggleNumberedList();
+```
+
+### Table Operations
+
+```dart
+// Add rows/columns
+controller.addTableRow(above: false); // Add below
+controller.addTableRow(above: true);  // Add above
+controller.addTableColumn(left: false); // Add right
+controller.addTableColumn(left: true);  // Add left
+
+// Delete rows/columns
+controller.deleteTableRow();
+controller.deleteTableColumn();
+```
+
+### Undo/Redo
+
+```dart
+// Undo last action
+controller.undo();
+
+// Redo last undone action
+controller.redo();
+
+// Check availability
+if (controller.canUndo) { ... }
+if (controller.canRedo) { ... }
+```
+
+### Export to HTML
+
+```dart
+final exporter = HtmlExporter();
+final html = exporter.export(controller.document);
+print(html);
+// Output: <h1>Welcome</h1><p>Paragraph text...</p>
+```
+
+### Import from HTML
+
+```dart
+final importer = HtmlImporter();
+final document = importer.import('<h1>Hello</h1><p>World</p>');
+controller.loadFromJson(document.toJson());
+```
+
+### Export to JSON
+
+```dart
+final serializer = DocumentSerializer();
+final json = serializer.serialize(controller.document, pretty: true);
+print(json);
+```
+
+### Import from JSON
+
+```dart
+final serializer = DocumentSerializer();
+final document = serializer.deserialize(jsonString);
 ```
 
 ## API Reference
 
-### SuperEditorController
+### DocumentEditorController
 
 | Property | Type | Description |
 |----------|------|-------------|
-| `html` | `String` | Get content as HTML |
-| `plainText` | `String` | Get content as plain text |
-| `hasContent` | `bool` | Check if editor has content |
-| `canUndo` | `bool` | Check if undo is available |
-| `canRedo` | `bool` | Check if redo is available |
-| `currentStyle` | `TextStyleModel` | Current text style |
+| `document` | `Document` | The document being edited |
+| `selection` | `EditorSelection?` | Current selection |
+| `canUndo` | `bool` | Whether undo is available |
+| `canRedo` | `bool` | Whether redo is available |
 
 | Method | Description |
 |--------|-------------|
-| `toggleFormat(TextFormat)` | Toggle text format |
-| `setTextColor(Color?)` | Set text color |
-| `setBackgroundColor(Color?)` | Set highlight color |
-| `setParagraphType(ParagraphType)` | Set paragraph type |
-| `setAlignment(TextAlignment)` | Set text alignment |
-| `setListType(ListType)` | Set list type |
-| `undo()` | Undo last action |
-| `redo()` | Redo last action |
-| `insertLink(url, text)` | Insert a link |
-| `insertImage(url)` | Insert an image |
+| `insertText(text)` | Insert text at cursor |
+| `deleteBackward()` | Delete character before cursor |
+| `deleteForward()` | Delete character after cursor |
+| `insertParagraph()` | Insert new paragraph (Enter) |
+| `toggleBold()` | Toggle bold formatting |
+| `toggleItalic()` | Toggle italic formatting |
+| `toggleUnderline()` | Toggle underline formatting |
+| `toggleStrikethrough()` | Toggle strikethrough |
+| `setAlignment(align)` | Set text alignment |
+| `toggleBulletList()` | Toggle bullet list |
+| `toggleNumberedList()` | Toggle numbered list |
+| `setBlockType(type)` | Set block type (heading, etc.) |
 | `insertTable(rows, cols)` | Insert a table |
-| `setHtml(html)` | Set content from HTML |
-| `setText(text)` | Set content from text |
-| `clear()` | Clear all content |
+| `addTableRow(above)` | Add table row |
+| `addTableColumn(left)` | Add table column |
+| `deleteTableRow()` | Delete current table row |
+| `deleteTableColumn()` | Delete current table column |
+| `insertLink(url, text)` | Insert a link |
+| `insertImage(src, alt)` | Insert an image |
+| `undo()` | Undo last action |
+| `redo()` | Redo last undone action |
 
-### TextFormat
+### Node Types
 
-- `bold`
-- `italic`
-- `underline`
-- `strikethrough`
-- `subscript`
-- `superscript`
-- `code`
+#### ParagraphNode
+```dart
+ParagraphNode(
+  text: AttributedText.fromText('Hello World'),
+  blockType: BlockType.heading1, // paragraph, heading1-6, blockquote, preformatted
+  alignment: TextAlign.center,
+  indentLevel: 0,
+)
+```
 
-### ParagraphType
+#### ListItemNode
+```dart
+ListItemNode(
+  text: AttributedText.fromText('List item'),
+  listType: ListType.bullet, // bullet, numbered
+  indentLevel: 0,
+)
+```
+
+#### TableNode
+```dart
+TableNode.withSize(3, 4, hasHeader: true) // 3 rows, 4 columns
+```
+
+#### ImageNode
+```dart
+ImageNode(
+  src: 'https://example.com/image.png',
+  alt: 'Description',
+  width: 300,
+  height: 200,
+)
+```
+
+#### CodeBlockNode
+```dart
+CodeBlockNode(
+  code: 'print("Hello World")',
+  language: 'dart',
+)
+```
+
+### BlockType
 
 - `paragraph`
 - `heading1` - `heading6`
-- `preformatted`
 - `blockquote`
+- `preformatted`
 
 ### ListType
 
-- `none`
 - `bullet`
-- `decimal` (1, 2, 3)
-- `decimalLeadingZero` (01, 02, 03)
-- `lowerRoman` (i, ii, iii)
-- `upperRoman` (I, II, III)
-- `lowerAlpha` (a, b, c)
-- `upperAlpha` (A, B, C)
+- `numbered`
+
+### TextAlign
+
+- `left`
+- `center`
+- `right`
+- `justify`
 
 ## Example
 
-See the [example](example/) folder for a complete example application.
+See the [example](example/) folder for a complete example application with:
+- Document editor demo
+- Table editing demo
+- Export demo (HTML/JSON)
 
 ```bash
 cd example
 flutter run
+```
+
+## Package Structure
+
+```
+lib/
+├── super_text_editor.dart          # Main library exports
+└── src/
+    ├── core/
+    │   ├── document/               # Document, Nodes, AttributedText
+    │   ├── selection/              # Selection management
+    │   ├── commands/               # Editing commands
+    │   └── history/                # Undo/Redo
+    ├── ui/
+    │   ├── editor/                 # DocumentEditor widget
+    │   ├── toolbar/                # EditorToolbar
+    │   ├── components/             # Node renderers
+    │   └── pickers/                # TableSizePicker
+    └── io/
+        ├── html/                   # HTML import/export
+        └── json/                   # JSON serialization
 ```
 
 ## Contributing

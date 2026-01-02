@@ -1,3 +1,117 @@
+## 1.0.0
+
+### Major Release - Native Flutter Document Editor
+
+Complete architectural rewrite following a Document/Node-based approach. This release introduces a professional-grade document editor without WebView dependency.
+
+#### Architecture
+
+- **Document Model**: New `Document` class as a list of `DocumentNode` objects
+- **Node Types**:
+  - `ParagraphNode` - Text paragraphs with headings support
+  - `ListItemNode` - Bullet and numbered list items
+  - `TableNode` - Full table support with rows/columns
+  - `ImageNode` - Image blocks
+  - `CodeBlockNode` - Code blocks with language support
+  - `HorizontalRuleNode` - Horizontal dividers
+- **AttributedText**: Rich text model with formatting spans
+- **Selection System**: `EditorSelection` with `NodePosition` for precise cursor control
+- **Command Pattern**: All editing operations as undoable commands
+- **History Management**: Full Undo/Redo support via `EditorHistory`
+
+#### Core Features
+
+- **Rich Text Formatting**
+  - Bold, Italic, Underline, Strikethrough
+  - Subscript, Superscript
+  - Text color and background color
+  - Font size and font family
+
+- **Block Styles**
+  - Paragraph
+  - Headings (H1-H6)
+  - Blockquote
+  - Preformatted/Code
+
+- **Text Alignment**
+  - Left, Center, Right, Justify
+
+- **Lists**
+  - Bullet lists
+  - Numbered lists
+  - Nested indentation
+
+- **Tables**
+  - Insert via CKEditor-style grid picker
+  - Add/Remove rows and columns
+  - Edit cell content
+  - Header row support
+  - Horizontal scroll for wide tables
+
+- **Links & Media**
+  - Insert/Edit links with URL
+  - Insert images
+  - Horizontal rules
+
+- **Code Blocks**
+  - Syntax highlighting ready
+  - Language selection
+
+#### UI Components
+
+- `DocumentEditor` - Main editor widget
+- `DocumentEditorController` - Full programmatic control
+- `EditorToolbar` - Configurable formatting toolbar
+- `TableSizePicker` - Grid-based table size selector
+- `ParagraphComponent` - Paragraph renderer
+- `ListItemComponent` - List item renderer
+- `TableComponent` - Table renderer with controls
+- `ImageComponent` - Image renderer
+- `CodeBlockComponent` - Code block renderer
+
+#### Import/Export
+
+- `HtmlExporter` - Export document to HTML
+- `HtmlImporter` - Import HTML to document
+- `DocumentSerializer` - JSON serialization
+
+#### Breaking Changes
+
+- Complete API redesign - see migration guide below
+- Replaced `SuperEditor` with `DocumentEditor`
+- Replaced `SuperEditorController` with `DocumentEditorController`
+- New document model replaces simple text-based approach
+
+#### Migration from 0.x
+
+```dart
+// Old (0.x)
+final controller = SuperEditorController();
+SuperEditor(controller: controller)
+final html = controller.html;
+
+// New (1.0.0)
+final controller = DocumentEditorController();
+DocumentEditor(controller: controller)
+final html = HtmlExporter().export(controller.document);
+```
+
+---
+
+## 0.3.0
+
+### Professional Editor Features
+
+- Keyboard shortcuts system
+- Find & Replace dialog
+- Word/character counter widget
+- Context menu (right-click)
+- Text patterns (@mentions, #hashtags)
+- Document export functionality
+- Editor theming system
+
+---
+
 ## 0.2.0
 
 ### New Features
@@ -38,20 +152,8 @@
 ### Improvements
 
 - Enhanced toolbar with new buttons for all new features
-- Updated `EditorToolbarConfig` with new options:
-  - `showFontSize` - Font size selector
-  - `showCodeBlock` - Code block button
-  - `showEmoji` - Emoji picker button
-  - `showSpecialChars` - Special characters button
-- New controller methods:
-  - `insertCodeBlock(code, language)` - Insert code block
-  - `insertText(text)` - Insert text/emoji/special char at cursor
-  - `setFontSize(size)` - Set font size
-  - `currentFontSize` getter
-
-### Documentation
-- Updated README with new features
-- Added examples for new dialogs
+- Updated `EditorToolbarConfig` with new options
+- New controller methods for code blocks, text insertion, font size
 
 ---
 
@@ -61,64 +163,12 @@
 
 #### Features
 - **Rich Text Editor Widget** (`SuperEditor`)
-  - Full-featured WYSIWYG editor similar to CKEditor 5
-  - Customizable toolbar with configurable options
-  - Support for light and dark themes
-
-- **Text Formatting**
-  - Bold, italic, underline, strikethrough
-  - Subscript and superscript
-  - Inline code formatting
-
-- **Colors**
-  - Text color picker with preset colors
-  - Background/highlight color picker
-
-- **Paragraph Styles**
-  - Normal paragraph
-  - Headings (H1-H6)
-  - Preformatted/code block
-  - Block quote
-
-- **Lists**
-  - Bulleted (unordered) lists
-  - Numbered (ordered) lists with multiple styles:
-    - Decimal (1, 2, 3)
-    - Decimal with leading zero (01, 02, 03)
-    - Lower Roman (i, ii, iii)
-    - Upper Roman (I, II, III)
-    - Lower Alpha (a, b, c)
-    - Upper Alpha (A, B, C)
-
-- **Text Alignment**
-  - Left, center, right, justify
-
-- **Insert Elements**
-  - Links with dialog
-  - Images with preview
-  - Tables with size picker
-  - Horizontal rules
-
-- **Editor Controller** (`SuperEditorController`)
-  - Full programmatic control
-  - HTML and plain text output
-  - Undo/redo support
-  - Format toggling
-
-- **Form Integration**
-  - `SuperEditorFormField` for Flutter Form integration
-  - Validation support
-
-- **Full-Screen Editor**
-  - `SuperEditorPage` for full-screen editing experience
-
-- **Toolbar Configurations**
-  - `EditorToolbarConfig.full` - All features
-  - `EditorToolbarConfig.basic` - Text formatting only
-  - `EditorToolbarConfig.minimal` - B/I/U/S only
-  - Custom configuration support
-
-#### Documentation
-- Comprehensive README with usage examples
-- Full API reference
-- Example application with multiple demos
+- **Text Formatting**: Bold, italic, underline, strikethrough, subscript, superscript
+- **Colors**: Text color and background/highlight color
+- **Paragraph Styles**: Headings (H1-H6), preformatted, blockquote
+- **Lists**: Bulleted and numbered lists with multiple styles
+- **Alignment**: Left, center, right, justify
+- **Insert Elements**: Links, images, tables, horizontal rules
+- **Editor Controller** with HTML and plain text output
+- **Form Integration** with `SuperEditorFormField`
+- **Toolbar Configurations**: Full, basic, minimal, custom

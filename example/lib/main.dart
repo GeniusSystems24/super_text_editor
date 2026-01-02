@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:super_text_editor/super_text_editor.dart';
 
 void main() {
@@ -45,7 +46,7 @@ class _ExampleHomePageState extends State<ExampleHomePage>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(length: 4, vsync: this);
   }
 
   @override
@@ -61,9 +62,11 @@ class _ExampleHomePageState extends State<ExampleHomePage>
         title: const Text('Super Text Editor v1.0.0'),
         bottom: TabBar(
           controller: _tabController,
+          isScrollable: true,
           tabs: const [
             Tab(text: 'Document Editor', icon: Icon(Icons.edit_document)),
             Tab(text: 'Table Demo', icon: Icon(Icons.table_chart)),
+            Tab(text: 'RTL / Arabic', icon: Icon(Icons.format_textdirection_r_to_l)),
             Tab(text: 'Export Demo', icon: Icon(Icons.code)),
           ],
         ),
@@ -73,6 +76,7 @@ class _ExampleHomePageState extends State<ExampleHomePage>
         children: const [
           DocumentEditorExample(),
           TableEditorExample(),
+          RtlEditorExample(),
           ExportExample(),
         ],
       ),
@@ -147,26 +151,41 @@ class _DocumentEditorExampleState extends State<DocumentEditorExample> {
           ),
         ),
         // Status bar
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          color: Theme.of(context).colorScheme.surfaceContainerHighest,
-          child: Row(
-            children: [
-              ListenableBuilder(
-                listenable: _controller,
-                builder: (context, _) {
-                  return Text(
-                    'Nodes: ${_controller.document.length} | '
-                    'Can Undo: ${_controller.canUndo} | '
-                    'Can Redo: ${_controller.canRedo}',
-                    style: Theme.of(context).textTheme.bodySmall,
-                  );
-                },
-              ),
-            ],
-          ),
-        ),
+        _buildStatusBar(context),
       ],
+    );
+  }
+
+  Widget _buildStatusBar(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      color: Theme.of(context).colorScheme.surfaceContainerHighest,
+      child: Row(
+        children: [
+          ListenableBuilder(
+            listenable: _controller,
+            builder: (context, _) {
+              return Text(
+                'Nodes: ${_controller.document.length} | '
+                'Undo: ${_controller.canUndo ? "Yes" : "No"} | '
+                'Redo: ${_controller.canRedo ? "Yes" : "No"}',
+                style: Theme.of(context).textTheme.bodySmall,
+              );
+            },
+          ),
+          const Spacer(),
+          IconButton(
+            icon: const Icon(Icons.undo, size: 20),
+            tooltip: 'Undo',
+            onPressed: _controller.canUndo ? _controller.undo : null,
+          ),
+          IconButton(
+            icon: const Icon(Icons.redo, size: 20),
+            tooltip: 'Redo',
+            onPressed: _controller.canRedo ? _controller.redo : null,
+          ),
+        ],
+      ),
     );
   }
 
@@ -249,6 +268,11 @@ class _TableEditorExampleState extends State<TableEditorExample> {
           TableCell.fromText('✓'),
           TableCell.fromText('Bullet and numbered'),
         ],
+        [
+          TableCell.fromText('Export'),
+          TableCell.fromText('✓'),
+          TableCell.fromText('HTML and JSON'),
+        ],
       ],
       hasHeader: true,
     );
@@ -292,7 +316,133 @@ class _TableEditorExampleState extends State<TableEditorExample> {
                 maxColumns: 6,
                 onSizeSelected: (result) {
                   _controller.insertTable(result.rows, result.columns);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Inserted ${result.rows}×${result.columns} table'),
+                      duration: const Duration(seconds: 1),
+                    ),
+                  );
                 },
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// RTL Editor Example - showcases Arabic/RTL support
+class RtlEditorExample extends StatefulWidget {
+  const RtlEditorExample({super.key});
+
+  @override
+  State<RtlEditorExample> createState() => _RtlEditorExampleState();
+}
+
+class _RtlEditorExampleState extends State<RtlEditorExample> {
+  late DocumentEditorController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    // Create a document with Arabic content
+    final document = Document([
+      ParagraphNode(
+        text: AttributedText.fromText('مرحباً بكم في محرر النصوص الفائق'),
+        blockType: BlockType.heading1,
+        alignment: TextAlign.right,
+      ),
+      ParagraphNode(
+        text: AttributedText.fromText(
+          'هذا محرر مستندات Flutter أصلي مبني على بنية Document/Node.',
+        ),
+        alignment: TextAlign.right,
+      ),
+      ParagraphNode(
+        text: AttributedText.fromText('الميزات الرئيسية'),
+        blockType: BlockType.heading2,
+        alignment: TextAlign.right,
+      ),
+      ListItemNode.fromText('بنية قائمة على المستندات'),
+      ListItemNode.fromText('تنسيق النص الغني'),
+      ListItemNode.fromText('دعم الجداول'),
+      ListItemNode.fromText('التراجع والإعادة'),
+      ListItemNode.fromText('تصدير واستيراد HTML و JSON'),
+      ParagraphNode(
+        text: AttributedText.fromText('جرب تحرير هذا المستند!'),
+        blockType: BlockType.blockquote,
+        alignment: TextAlign.right,
+      ),
+      _createArabicTable(),
+    ]);
+    _controller = DocumentEditorController(document: document);
+  }
+
+  TableNode _createArabicTable() {
+    return TableNode(
+      cells: [
+        [
+          TableCell.fromText('الميزة'),
+          TableCell.fromText('الحالة'),
+          TableCell.fromText('ملاحظات'),
+        ],
+        [
+          TableCell.fromText('النص الغني'),
+          TableCell.fromText('✓'),
+          TableCell.fromText('غامق، مائل، تحته خط'),
+        ],
+        [
+          TableCell.fromText('الجداول'),
+          TableCell.fromText('✓'),
+          TableCell.fromText('إضافة/حذف صفوف وأعمدة'),
+        ],
+        [
+          TableCell.fromText('القوائم'),
+          TableCell.fromText('✓'),
+          TableCell.fromText('نقطية ورقمية'),
+        ],
+      ],
+      hasHeader: true,
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        // Toolbar
+        EditorToolbar(
+          controller: _controller,
+        ),
+        // RTL Editor
+        Expanded(
+          child: DocumentEditor(
+            controller: _controller,
+            placeholder: 'ابدأ الكتابة...',
+            padding: const EdgeInsets.all(16),
+            textDirection: TextDirection.rtl,
+          ),
+        ),
+        // Info bar
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          color: Theme.of(context).colorScheme.surfaceContainerHighest,
+          child: Row(
+            children: [
+              const Icon(Icons.info_outline, size: 16),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'This example demonstrates RTL (Right-to-Left) support for Arabic and other RTL languages.',
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
               ),
             ],
           ),
@@ -332,6 +482,17 @@ class _ExportExampleState extends State<ExportExample> {
       ListItemNode.fromText('First item', listType: ListType.numbered),
       ListItemNode.fromText('Second item', listType: ListType.numbered),
       ListItemNode.fromText('Third item', listType: ListType.numbered),
+      ParagraphNode(
+        text: AttributedText.fromText('Sample Table'),
+        blockType: BlockType.heading3,
+      ),
+      TableNode(
+        cells: [
+          [TableCell.fromText('A1'), TableCell.fromText('B1')],
+          [TableCell.fromText('A2'), TableCell.fromText('B2')],
+        ],
+        hasHeader: true,
+      ),
     ]);
     _controller = DocumentEditorController(document: document);
     _controller.addListener(_updateOutput);
@@ -365,7 +526,7 @@ class _ExportExampleState extends State<ExportExample> {
         ),
         // Editor (compact)
         SizedBox(
-          height: 200,
+          height: 180,
           child: DocumentEditor(
             controller: _controller,
             padding: const EdgeInsets.all(16),
@@ -390,13 +551,23 @@ class _ExportExampleState extends State<ExportExample> {
                 },
               ),
               const Spacer(),
+              Text(
+                '${_showHtml ? _htmlOutput.length : _jsonOutput.length} chars',
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+              const SizedBox(width: 8),
               IconButton(
                 icon: const Icon(Icons.copy),
                 tooltip: 'Copy to clipboard',
                 onPressed: () {
-                  // Copy to clipboard would go here
+                  Clipboard.setData(ClipboardData(
+                    text: _showHtml ? _htmlOutput : _jsonOutput,
+                  ));
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Copied to clipboard!')),
+                    const SnackBar(
+                      content: Text('Copied to clipboard!'),
+                      duration: Duration(seconds: 1),
+                    ),
                   );
                 },
               ),
@@ -458,7 +629,9 @@ class _LinkDialogState extends State<_LinkDialog> {
             decoration: const InputDecoration(
               labelText: 'URL',
               hintText: 'https://example.com',
+              prefixIcon: Icon(Icons.link),
             ),
+            keyboardType: TextInputType.url,
           ),
           const SizedBox(height: 16),
           TextField(
@@ -466,6 +639,7 @@ class _LinkDialogState extends State<_LinkDialog> {
             decoration: const InputDecoration(
               labelText: 'Link Text',
               hintText: 'Click here',
+              prefixIcon: Icon(Icons.text_fields),
             ),
           ),
         ],
@@ -477,7 +651,12 @@ class _LinkDialogState extends State<_LinkDialog> {
         ),
         FilledButton(
           onPressed: () {
-            widget.onInsert(_urlController.text, _textController.text);
+            if (_urlController.text.isNotEmpty) {
+              widget.onInsert(
+                _urlController.text,
+                _textController.text.isEmpty ? _urlController.text : _textController.text,
+              );
+            }
             Navigator.of(context).pop();
           },
           child: const Text('Insert'),
@@ -520,14 +699,17 @@ class _ImageDialogState extends State<_ImageDialog> {
             decoration: const InputDecoration(
               labelText: 'Image URL',
               hintText: 'https://example.com/image.png',
+              prefixIcon: Icon(Icons.image),
             ),
+            keyboardType: TextInputType.url,
           ),
           const SizedBox(height: 16),
           TextField(
             controller: _altController,
             decoration: const InputDecoration(
-              labelText: 'Alt Text',
+              labelText: 'Alt Text (optional)',
               hintText: 'Image description',
+              prefixIcon: Icon(Icons.description),
             ),
           ),
         ],
@@ -539,7 +721,9 @@ class _ImageDialogState extends State<_ImageDialog> {
         ),
         FilledButton(
           onPressed: () {
-            widget.onInsert(_urlController.text, _altController.text);
+            if (_urlController.text.isNotEmpty) {
+              widget.onInsert(_urlController.text, _altController.text);
+            }
             Navigator.of(context).pop();
           },
           child: const Text('Insert'),
