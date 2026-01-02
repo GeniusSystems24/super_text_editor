@@ -9,6 +9,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  super_editor: ^0.3.0-dev.35
   super_text_editor:
     path: ../
 

@@ -1,52 +1,53 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:super_text_editor/super_text_editor.dart';
+import 'package:super_editor/super_editor.dart';
 
 void main() {
   runApp(const SuperEditorExampleApp());
 }
 
-/// Main example application for Super Text Editor v1.0.0
+/// Comprehensive Super Editor Example App
+/// Showcases all features of the super_editor package
 class SuperEditorExampleApp extends StatelessWidget {
   const SuperEditorExampleApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Super Text Editor v1.0.0',
+      title: 'Super Editor Demo',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.indigo),
         useMaterial3: true,
       ),
       darkTheme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.blue,
+          seedColor: Colors.indigo,
           brightness: Brightness.dark,
         ),
         useMaterial3: true,
       ),
-      home: const ExampleHomePage(),
+      home: const SuperEditorHomePage(),
     );
   }
 }
 
-/// Home page with example tabs
-class ExampleHomePage extends StatefulWidget {
-  const ExampleHomePage({super.key});
+/// Home page with multiple demo tabs
+class SuperEditorHomePage extends StatefulWidget {
+  const SuperEditorHomePage({super.key});
 
   @override
-  State<ExampleHomePage> createState() => _ExampleHomePageState();
+  State<SuperEditorHomePage> createState() => _SuperEditorHomePageState();
 }
 
-class _ExampleHomePageState extends State<ExampleHomePage>
+class _SuperEditorHomePageState extends State<SuperEditorHomePage>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 4, vsync: this);
+    _tabController = TabController(length: 5, vsync: this);
   }
 
   @override
@@ -59,76 +60,148 @@ class _ExampleHomePageState extends State<ExampleHomePage>
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Super Text Editor v1.0.0'),
+        title: const Text('Super Editor Demo'),
+        elevation: 2,
         bottom: TabBar(
           controller: _tabController,
           isScrollable: true,
           tabs: const [
-            Tab(text: 'Document Editor', icon: Icon(Icons.edit_document)),
-            Tab(text: 'Table Demo', icon: Icon(Icons.table_chart)),
-            Tab(text: 'RTL / Arabic', icon: Icon(Icons.format_textdirection_r_to_l)),
-            Tab(text: 'Export Demo', icon: Icon(Icons.code)),
+            Tab(text: 'Full Editor', icon: Icon(Icons.edit_document)),
+            Tab(text: 'Rich Text', icon: Icon(Icons.format_bold)),
+            Tab(text: 'Tasks', icon: Icon(Icons.check_box)),
+            Tab(text: 'Custom Styles', icon: Icon(Icons.palette)),
+            Tab(text: 'Read Only', icon: Icon(Icons.visibility)),
           ],
         ),
       ),
       body: TabBarView(
         controller: _tabController,
         children: const [
-          DocumentEditorExample(),
-          TableEditorExample(),
-          RtlEditorExample(),
-          ExportExample(),
+          FullEditorDemo(),
+          RichTextDemo(),
+          TasksDemo(),
+          CustomStylesDemo(),
+          ReadOnlyDemo(),
         ],
       ),
     );
   }
 }
 
-/// Document Editor Example - showcases the new Document/Node architecture
-class DocumentEditorExample extends StatefulWidget {
-  const DocumentEditorExample({super.key});
+// ============================================================================
+// Demo 1: Full Featured Editor with Toolbar
+// ============================================================================
+
+class FullEditorDemo extends StatefulWidget {
+  const FullEditorDemo({super.key});
 
   @override
-  State<DocumentEditorExample> createState() => _DocumentEditorExampleState();
+  State<FullEditorDemo> createState() => _FullEditorDemoState();
 }
 
-class _DocumentEditorExampleState extends State<DocumentEditorExample> {
-  late DocumentEditorController _controller;
+class _FullEditorDemoState extends State<FullEditorDemo> {
+  late MutableDocument _document;
+  late MutableDocumentComposer _composer;
+  late Editor _editor;
+  final _scrollController = ScrollController();
+  final _focusNode = FocusNode();
 
   @override
   void initState() {
     super.initState();
-    // Create a document with initial content
-    final document = Document([
-      ParagraphNode(
-        text: AttributedText.fromText('Welcome to Super Text Editor v1.0.0'),
-        blockType: BlockType.heading1,
-      ),
-      ParagraphNode(
-        text: AttributedText.fromText(
-          'This is a native Flutter document editor built on a Document/Node architecture.',
+    _document = _createInitialDocument();
+    _composer = MutableDocumentComposer();
+    _editor = createDefaultDocumentEditor(
+      document: _document,
+      composer: _composer,
+    );
+  }
+
+  MutableDocument _createInitialDocument() {
+    return MutableDocument(
+      nodes: [
+        ParagraphNode(
+          id: Editor.createNodeId(),
+          text: AttributedText('Welcome to Super Editor'),
+          metadata: {'blockType': header1Attribution},
         ),
-      ),
-      ParagraphNode(
-        text: AttributedText.fromText('Key Features'),
-        blockType: BlockType.heading2,
-      ),
-      ListItemNode.fromText('Document-based architecture (Document = List of Nodes)'),
-      ListItemNode.fromText('Rich text formatting with AttributedText'),
-      ListItemNode.fromText('Tables with add/remove rows and columns'),
-      ListItemNode.fromText('Undo/Redo support'),
-      ListItemNode.fromText('HTML and JSON export/import'),
-      ParagraphNode(
-        text: AttributedText.fromText('Try editing this document!'),
-        blockType: BlockType.blockquote,
-      ),
-    ]);
-    _controller = DocumentEditorController(document: document);
+        ParagraphNode(
+          id: Editor.createNodeId(),
+          text: AttributedText(
+            'Super Editor is a powerful, extensible document editor for Flutter. '
+            'This demo showcases its key features.',
+          ),
+        ),
+        HorizontalRuleNode(id: Editor.createNodeId()),
+        ParagraphNode(
+          id: Editor.createNodeId(),
+          text: AttributedText('Key Features'),
+          metadata: {'blockType': header2Attribution},
+        ),
+        ListItemNode.unordered(
+          id: Editor.createNodeId(),
+          text: AttributedText('Rich text formatting (bold, italic, underline, strikethrough)'),
+        ),
+        ListItemNode.unordered(
+          id: Editor.createNodeId(),
+          text: AttributedText('Multiple heading levels (H1, H2, H3)'),
+        ),
+        ListItemNode.unordered(
+          id: Editor.createNodeId(),
+          text: AttributedText('Bullet and numbered lists'),
+        ),
+        ListItemNode.unordered(
+          id: Editor.createNodeId(),
+          text: AttributedText('Task lists with checkboxes'),
+        ),
+        ListItemNode.unordered(
+          id: Editor.createNodeId(),
+          text: AttributedText('Images and horizontal rules'),
+        ),
+        ListItemNode.unordered(
+          id: Editor.createNodeId(),
+          text: AttributedText('Code blocks and blockquotes'),
+        ),
+        ParagraphNode(
+          id: Editor.createNodeId(),
+          text: AttributedText('Keyboard Shortcuts'),
+          metadata: {'blockType': header2Attribution},
+        ),
+        ListItemNode.ordered(
+          id: Editor.createNodeId(),
+          text: AttributedText('Cmd/Ctrl + B → Bold'),
+        ),
+        ListItemNode.ordered(
+          id: Editor.createNodeId(),
+          text: AttributedText('Cmd/Ctrl + I → Italic'),
+        ),
+        ListItemNode.ordered(
+          id: Editor.createNodeId(),
+          text: AttributedText('Cmd/Ctrl + U → Underline'),
+        ),
+        ListItemNode.ordered(
+          id: Editor.createNodeId(),
+          text: AttributedText('Cmd/Ctrl + Z → Undo'),
+        ),
+        ListItemNode.ordered(
+          id: Editor.createNodeId(),
+          text: AttributedText('Cmd/Ctrl + Shift + Z → Redo'),
+        ),
+        ParagraphNode(
+          id: Editor.createNodeId(),
+          text: AttributedText(
+            'Try editing this document! Select text to see formatting options.',
+          ),
+          metadata: {'blockType': blockquoteAttribution},
+        ),
+      ],
+    );
   }
 
   @override
   void dispose() {
-    _controller.dispose();
+    _scrollController.dispose();
+    _focusNode.dispose();
     super.dispose();
   }
 
@@ -136,23 +209,156 @@ class _DocumentEditorExampleState extends State<DocumentEditorExample> {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        // Toolbar
-        EditorToolbar(
-          controller: _controller,
-          onInsertLink: _showLinkDialog,
-          onInsertImage: _showImageDialog,
-        ),
+        // Custom Toolbar
+        _buildToolbar(context),
         // Editor
         Expanded(
-          child: DocumentEditor(
-            controller: _controller,
-            placeholder: 'Start typing...',
-            padding: const EdgeInsets.all(16),
+          child: SuperEditor(
+            editor: _editor,
+            document: _document,
+            composer: _composer,
+            focusNode: _focusNode,
+            scrollController: _scrollController,
+            stylesheet: defaultStylesheet.copyWith(
+              addRulesAfter: [
+                StyleRule(
+                  BlockSelector.all,
+                  (doc, docNode) => {
+                    Styles.padding: const CascadingPadding.symmetric(
+                      horizontal: 24,
+                      vertical: 8,
+                    ),
+                  },
+                ),
+              ],
+            ),
+            documentOverlayBuilders: [
+              DefaultCaretOverlayBuilder(
+                caretStyle: const CaretStyle(
+                  color: Colors.indigo,
+                  width: 2,
+                ),
+              ),
+            ],
           ),
         ),
-        // Status bar
+        // Status Bar
         _buildStatusBar(context),
       ],
+    );
+  }
+
+  Widget _buildToolbar(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceContainerHighest,
+        border: Border(
+          bottom: BorderSide(
+            color: Theme.of(context).dividerColor,
+          ),
+        ),
+      ),
+      child: Wrap(
+        spacing: 4,
+        runSpacing: 4,
+        children: [
+          // Text style buttons
+          _ToolbarButton(
+            icon: Icons.format_bold,
+            tooltip: 'Bold (Cmd+B)',
+            onPressed: () => _toggleAttribution(boldAttribution),
+          ),
+          _ToolbarButton(
+            icon: Icons.format_italic,
+            tooltip: 'Italic (Cmd+I)',
+            onPressed: () => _toggleAttribution(italicsAttribution),
+          ),
+          _ToolbarButton(
+            icon: Icons.format_underlined,
+            tooltip: 'Underline (Cmd+U)',
+            onPressed: () => _toggleAttribution(underlineAttribution),
+          ),
+          _ToolbarButton(
+            icon: Icons.format_strikethrough,
+            tooltip: 'Strikethrough',
+            onPressed: () => _toggleAttribution(strikethroughAttribution),
+          ),
+          const _ToolbarDivider(),
+          // Block type buttons
+          _ToolbarButton(
+            icon: Icons.title,
+            tooltip: 'Heading 1',
+            onPressed: () => _setBlockType(header1Attribution),
+          ),
+          _ToolbarButton(
+            icon: Icons.text_fields,
+            tooltip: 'Heading 2',
+            onPressed: () => _setBlockType(header2Attribution),
+          ),
+          _ToolbarButton(
+            icon: Icons.format_size,
+            tooltip: 'Heading 3',
+            onPressed: () => _setBlockType(header3Attribution),
+          ),
+          _ToolbarButton(
+            icon: Icons.format_paragraph,
+            tooltip: 'Paragraph',
+            onPressed: () => _setBlockType(null),
+          ),
+          const _ToolbarDivider(),
+          // List buttons
+          _ToolbarButton(
+            icon: Icons.format_list_bulleted,
+            tooltip: 'Bullet List',
+            onPressed: _toggleUnorderedList,
+          ),
+          _ToolbarButton(
+            icon: Icons.format_list_numbered,
+            tooltip: 'Numbered List',
+            onPressed: _toggleOrderedList,
+          ),
+          _ToolbarButton(
+            icon: Icons.check_box,
+            tooltip: 'Task List',
+            onPressed: _insertTask,
+          ),
+          const _ToolbarDivider(),
+          // Other elements
+          _ToolbarButton(
+            icon: Icons.format_quote,
+            tooltip: 'Blockquote',
+            onPressed: () => _setBlockType(blockquoteAttribution),
+          ),
+          _ToolbarButton(
+            icon: Icons.code,
+            tooltip: 'Code Block',
+            onPressed: _insertCodeBlock,
+          ),
+          _ToolbarButton(
+            icon: Icons.horizontal_rule,
+            tooltip: 'Horizontal Rule',
+            onPressed: _insertHorizontalRule,
+          ),
+          _ToolbarButton(
+            icon: Icons.image,
+            tooltip: 'Insert Image',
+            onPressed: () => _showImageDialog(context),
+          ),
+          const _ToolbarDivider(),
+          // Undo/Redo
+          _ToolbarButton(
+            icon: Icons.undo,
+            tooltip: 'Undo (Cmd+Z)',
+            onPressed: () => _editor.undo(),
+          ),
+          _ToolbarButton(
+            icon: Icons.redo,
+            tooltip: 'Redo (Cmd+Shift+Z)',
+            onPressed: () => _editor.redo(),
+          ),
+        ],
+      ),
     );
   }
 
@@ -162,433 +368,1042 @@ class _DocumentEditorExampleState extends State<DocumentEditorExample> {
       color: Theme.of(context).colorScheme.surfaceContainerHighest,
       child: Row(
         children: [
+          Text(
+            'Nodes: ${_document.nodeCount}',
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+          const SizedBox(width: 16),
           ListenableBuilder(
-            listenable: _controller,
+            listenable: _composer.selectionNotifier,
             builder: (context, _) {
+              final selection = _composer.selection;
+              if (selection == null) {
+                return Text(
+                  'No selection',
+                  style: Theme.of(context).textTheme.bodySmall,
+                );
+              }
               return Text(
-                'Nodes: ${_controller.document.length} | '
-                'Undo: ${_controller.canUndo ? "Yes" : "No"} | '
-                'Redo: ${_controller.canRedo ? "Yes" : "No"}',
+                'Selection: ${selection.isCollapsed ? "Caret" : "Range"}',
                 style: Theme.of(context).textTheme.bodySmall,
               );
             },
           ),
           const Spacer(),
-          IconButton(
-            icon: const Icon(Icons.undo, size: 20),
-            tooltip: 'Undo',
-            onPressed: _controller.canUndo ? _controller.undo : null,
-          ),
-          IconButton(
-            icon: const Icon(Icons.redo, size: 20),
-            tooltip: 'Redo',
-            onPressed: _controller.canRedo ? _controller.redo : null,
+          Text(
+            'Super Editor v0.3.0',
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(context).colorScheme.primary,
+                ),
           ),
         ],
       ),
     );
   }
 
-  void _showLinkDialog() {
+  void _toggleAttribution(Attribution attribution) {
+    final selection = _composer.selection;
+    if (selection == null) return;
+
+    _editor.execute([
+      ToggleTextAttributionsRequest(
+        documentRange: selection,
+        attributions: {attribution},
+      ),
+    ]);
+  }
+
+  void _setBlockType(Attribution? blockType) {
+    final selection = _composer.selection;
+    if (selection == null) return;
+
+    final node = _document.getNodeById(selection.extent.nodeId);
+    if (node is! ParagraphNode) return;
+
+    _editor.execute([
+      ChangeParagraphBlockTypeRequest(
+        nodeId: node.id,
+        blockType: blockType,
+      ),
+    ]);
+  }
+
+  void _toggleUnorderedList() {
+    final selection = _composer.selection;
+    if (selection == null) return;
+
+    final node = _document.getNodeById(selection.extent.nodeId);
+    if (node is ListItemNode) {
+      // Convert back to paragraph
+      _editor.execute([
+        ConvertListItemToParagraphRequest(nodeId: node.id),
+      ]);
+    } else if (node is ParagraphNode) {
+      // Convert to list
+      _editor.execute([
+        ConvertParagraphToListItemRequest(
+          nodeId: node.id,
+          type: ListItemType.unordered,
+        ),
+      ]);
+    }
+  }
+
+  void _toggleOrderedList() {
+    final selection = _composer.selection;
+    if (selection == null) return;
+
+    final node = _document.getNodeById(selection.extent.nodeId);
+    if (node is ListItemNode) {
+      _editor.execute([
+        ConvertListItemToParagraphRequest(nodeId: node.id),
+      ]);
+    } else if (node is ParagraphNode) {
+      _editor.execute([
+        ConvertParagraphToListItemRequest(
+          nodeId: node.id,
+          type: ListItemType.ordered,
+        ),
+      ]);
+    }
+  }
+
+  void _insertTask() {
+    final selection = _composer.selection;
+    if (selection == null) return;
+
+    final node = _document.getNodeById(selection.extent.nodeId);
+    if (node == null) return;
+
+    final nodeIndex = _document.getNodeIndexById(node.id);
+
+    _editor.execute([
+      InsertNodeAtIndexRequest(
+        nodeIndex: nodeIndex + 1,
+        node: TaskNode(
+          id: Editor.createNodeId(),
+          text: AttributedText('New task'),
+          isComplete: false,
+        ),
+      ),
+    ]);
+  }
+
+  void _insertCodeBlock() {
+    final selection = _composer.selection;
+    if (selection == null) return;
+
+    final node = _document.getNodeById(selection.extent.nodeId);
+    if (node is! ParagraphNode) return;
+
+    // Set code block style using metadata
+    _editor.execute([
+      ChangeParagraphBlockTypeRequest(
+        nodeId: node.id,
+        blockType: codeAttribution,
+      ),
+    ]);
+  }
+
+  void _insertHorizontalRule() {
+    final selection = _composer.selection;
+    if (selection == null) return;
+
+    final node = _document.getNodeById(selection.extent.nodeId);
+    if (node == null) return;
+
+    final nodeIndex = _document.getNodeIndexById(node.id);
+
+    _editor.execute([
+      InsertNodeAtIndexRequest(
+        nodeIndex: nodeIndex + 1,
+        node: HorizontalRuleNode(id: Editor.createNodeId()),
+      ),
+    ]);
+  }
+
+  void _showImageDialog(BuildContext context) {
+    final urlController = TextEditingController();
+
     showDialog(
       context: context,
-      builder: (context) => _LinkDialog(
-        onInsert: (url, text) {
-          _controller.insertLink(url, text);
-        },
+      builder: (context) => AlertDialog(
+        title: const Text('Insert Image'),
+        content: TextField(
+          controller: urlController,
+          decoration: const InputDecoration(
+            labelText: 'Image URL',
+            hintText: 'https://example.com/image.png',
+            prefixIcon: Icon(Icons.link),
+          ),
+          keyboardType: TextInputType.url,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () {
+              if (urlController.text.isNotEmpty) {
+                _insertImage(urlController.text);
+              }
+              Navigator.of(context).pop();
+            },
+            child: const Text('Insert'),
+          ),
+        ],
       ),
     );
   }
 
-  void _showImageDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => _ImageDialog(
-        onInsert: (url, alt) {
-          _controller.insertImage(url, alt: alt);
-        },
+  void _insertImage(String url) {
+    final selection = _composer.selection;
+    if (selection == null) return;
+
+    final node = _document.getNodeById(selection.extent.nodeId);
+    if (node == null) return;
+
+    final nodeIndex = _document.getNodeIndexById(node.id);
+
+    _editor.execute([
+      InsertNodeAtIndexRequest(
+        nodeIndex: nodeIndex + 1,
+        node: ImageNode(
+          id: Editor.createNodeId(),
+          imageUrl: url,
+          altText: 'Image',
+        ),
       ),
-    );
+    ]);
   }
 }
 
-/// Table Editor Example - showcases table functionality
-class TableEditorExample extends StatefulWidget {
-  const TableEditorExample({super.key});
+// ============================================================================
+// Demo 2: Rich Text Formatting
+// ============================================================================
+
+class RichTextDemo extends StatefulWidget {
+  const RichTextDemo({super.key});
 
   @override
-  State<TableEditorExample> createState() => _TableEditorExampleState();
+  State<RichTextDemo> createState() => _RichTextDemoState();
 }
 
-class _TableEditorExampleState extends State<TableEditorExample> {
-  late DocumentEditorController _controller;
+class _RichTextDemoState extends State<RichTextDemo> {
+  late MutableDocument _document;
+  late MutableDocumentComposer _composer;
+  late Editor _editor;
 
   @override
   void initState() {
     super.initState();
-    // Create a document with a sample table
-    final document = Document([
-      ParagraphNode(
-        text: AttributedText.fromText('Table Editing Demo'),
-        blockType: BlockType.heading1,
-      ),
-      ParagraphNode(
-        text: AttributedText.fromText(
-          'Click on a table cell to edit it. Use the controls below the table to add or remove rows and columns.',
-        ),
-      ),
-      _createSampleTable(),
-      ParagraphNode(
-        text: AttributedText.fromText('Try inserting a new table using the Table Size Picker below.'),
-      ),
-    ]);
-    _controller = DocumentEditorController(document: document);
-  }
-
-  TableNode _createSampleTable() {
-    return TableNode(
-      cells: [
-        [
-          TableCell.fromText('Feature'),
-          TableCell.fromText('Status'),
-          TableCell.fromText('Notes'),
-        ],
-        [
-          TableCell.fromText('Rich Text'),
-          TableCell.fromText('✓'),
-          TableCell.fromText('Bold, Italic, Underline, etc.'),
-        ],
-        [
-          TableCell.fromText('Tables'),
-          TableCell.fromText('✓'),
-          TableCell.fromText('With row/column operations'),
-        ],
-        [
-          TableCell.fromText('Lists'),
-          TableCell.fromText('✓'),
-          TableCell.fromText('Bullet and numbered'),
-        ],
-        [
-          TableCell.fromText('Export'),
-          TableCell.fromText('✓'),
-          TableCell.fromText('HTML and JSON'),
-        ],
-      ],
-      hasHeader: true,
+    _document = _createRichTextDocument();
+    _composer = MutableDocumentComposer();
+    _editor = createDefaultDocumentEditor(
+      document: _document,
+      composer: _composer,
     );
   }
 
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
+  MutableDocument _createRichTextDocument() {
+    return MutableDocument(
+      nodes: [
+        ParagraphNode(
+          id: Editor.createNodeId(),
+          text: AttributedText('Rich Text Formatting'),
+          metadata: {'blockType': header1Attribution},
+        ),
+        ParagraphNode(
+          id: Editor.createNodeId(),
+          text: AttributedText(
+            'Select text and use the buttons above to apply formatting. '
+            'You can combine multiple styles on the same text.',
+          ),
+        ),
+        ParagraphNode(
+          id: Editor.createNodeId(),
+          text: AttributedText('Text Styles'),
+          metadata: {'blockType': header2Attribution},
+        ),
+        ParagraphNode(
+          id: Editor.createNodeId(),
+          text: _createFormattedText(),
+        ),
+        ParagraphNode(
+          id: Editor.createNodeId(),
+          text: AttributedText('Combined Styles'),
+          metadata: {'blockType': header2Attribution},
+        ),
+        ParagraphNode(
+          id: Editor.createNodeId(),
+          text: _createCombinedStylesText(),
+        ),
+        ParagraphNode(
+          id: Editor.createNodeId(),
+          text: AttributedText('Try It Yourself'),
+          metadata: {'blockType': header2Attribution},
+        ),
+        ParagraphNode(
+          id: Editor.createNodeId(),
+          text: AttributedText(
+            'Type here and experiment with different text formatting options...',
+          ),
+        ),
+      ],
+    );
+  }
+
+  AttributedText _createFormattedText() {
+    final text = AttributedText('This is bold, this is italic, this is underlined, and this is strikethrough.');
+    // Apply bold to "bold"
+    text.addAttribution(boldAttribution, const SpanRange(8, 11));
+    // Apply italic to "italic"
+    text.addAttribution(italicsAttribution, const SpanRange(23, 28));
+    // Apply underline to "underlined"
+    text.addAttribution(underlineAttribution, const SpanRange(40, 49));
+    // Apply strikethrough to "strikethrough"
+    text.addAttribution(strikethroughAttribution, const SpanRange(65, 77));
+    return text;
+  }
+
+  AttributedText _createCombinedStylesText() {
+    final text = AttributedText('You can combine bold and italic, or even bold, italic, and underlined together!');
+    // Bold + Italic
+    text.addAttribution(boldAttribution, const SpanRange(16, 30));
+    text.addAttribution(italicsAttribution, const SpanRange(21, 30));
+    // Bold + Italic + Underline
+    text.addAttribution(boldAttribution, const SpanRange(41, 69));
+    text.addAttribution(italicsAttribution, const SpanRange(48, 69));
+    text.addAttribution(underlineAttribution, const SpanRange(60, 69));
+    return text;
   }
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
-        // Toolbar
-        EditorToolbar(
-          controller: _controller,
+        // Formatting buttons
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surfaceContainerHighest,
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              _FormatButton(
+                icon: Icons.format_bold,
+                label: 'Bold',
+                onPressed: () => _toggleStyle(boldAttribution),
+              ),
+              const SizedBox(width: 8),
+              _FormatButton(
+                icon: Icons.format_italic,
+                label: 'Italic',
+                onPressed: () => _toggleStyle(italicsAttribution),
+              ),
+              const SizedBox(width: 8),
+              _FormatButton(
+                icon: Icons.format_underlined,
+                label: 'Underline',
+                onPressed: () => _toggleStyle(underlineAttribution),
+              ),
+              const SizedBox(width: 8),
+              _FormatButton(
+                icon: Icons.format_strikethrough,
+                label: 'Strike',
+                onPressed: () => _toggleStyle(strikethroughAttribution),
+              ),
+            ],
+          ),
         ),
         // Editor
         Expanded(
-          child: DocumentEditor(
-            controller: _controller,
-            padding: const EdgeInsets.all(16),
+          child: SuperEditor(
+            editor: _editor,
+            document: _document,
+            composer: _composer,
+            stylesheet: defaultStylesheet.copyWith(
+              addRulesAfter: [
+                StyleRule(
+                  BlockSelector.all,
+                  (doc, docNode) => {
+                    Styles.padding: const CascadingPadding.symmetric(
+                      horizontal: 32,
+                      vertical: 12,
+                    ),
+                  },
+                ),
+              ],
+            ),
           ),
         ),
-        // Table Size Picker
+      ],
+    );
+  }
+
+  void _toggleStyle(Attribution attribution) {
+    final selection = _composer.selection;
+    if (selection == null) return;
+
+    _editor.execute([
+      ToggleTextAttributionsRequest(
+        documentRange: selection,
+        attributions: {attribution},
+      ),
+    ]);
+  }
+}
+
+class _FormatButton extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final VoidCallback onPressed;
+
+  const _FormatButton({
+    required this.icon,
+    required this.label,
+    required this.onPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ElevatedButton.icon(
+      onPressed: onPressed,
+      icon: Icon(icon, size: 20),
+      label: Text(label),
+    );
+  }
+}
+
+// ============================================================================
+// Demo 3: Tasks / Checkboxes
+// ============================================================================
+
+class TasksDemo extends StatefulWidget {
+  const TasksDemo({super.key});
+
+  @override
+  State<TasksDemo> createState() => _TasksDemoState();
+}
+
+class _TasksDemoState extends State<TasksDemo> {
+  late MutableDocument _document;
+  late MutableDocumentComposer _composer;
+  late Editor _editor;
+
+  @override
+  void initState() {
+    super.initState();
+    _document = _createTasksDocument();
+    _composer = MutableDocumentComposer();
+    _editor = createDefaultDocumentEditor(
+      document: _document,
+      composer: _composer,
+    );
+  }
+
+  MutableDocument _createTasksDocument() {
+    return MutableDocument(
+      nodes: [
+        ParagraphNode(
+          id: Editor.createNodeId(),
+          text: AttributedText('Task Management'),
+          metadata: {'blockType': header1Attribution},
+        ),
+        ParagraphNode(
+          id: Editor.createNodeId(),
+          text: AttributedText(
+            'Super Editor supports interactive task lists. Click on a checkbox to toggle its state.',
+          ),
+        ),
+        ParagraphNode(
+          id: Editor.createNodeId(),
+          text: AttributedText('Project Setup'),
+          metadata: {'blockType': header2Attribution},
+        ),
+        TaskNode(
+          id: Editor.createNodeId(),
+          text: AttributedText('Install Flutter SDK'),
+          isComplete: true,
+        ),
+        TaskNode(
+          id: Editor.createNodeId(),
+          text: AttributedText('Create new project'),
+          isComplete: true,
+        ),
+        TaskNode(
+          id: Editor.createNodeId(),
+          text: AttributedText('Add super_editor dependency'),
+          isComplete: true,
+        ),
+        TaskNode(
+          id: Editor.createNodeId(),
+          text: AttributedText('Configure project settings'),
+          isComplete: false,
+        ),
+        ParagraphNode(
+          id: Editor.createNodeId(),
+          text: AttributedText('Implementation'),
+          metadata: {'blockType': header2Attribution},
+        ),
+        TaskNode(
+          id: Editor.createNodeId(),
+          text: AttributedText('Create document model'),
+          isComplete: false,
+        ),
+        TaskNode(
+          id: Editor.createNodeId(),
+          text: AttributedText('Build editor UI'),
+          isComplete: false,
+        ),
+        TaskNode(
+          id: Editor.createNodeId(),
+          text: AttributedText('Add formatting toolbar'),
+          isComplete: false,
+        ),
+        TaskNode(
+          id: Editor.createNodeId(),
+          text: AttributedText('Implement save/load functionality'),
+          isComplete: false,
+        ),
+        TaskNode(
+          id: Editor.createNodeId(),
+          text: AttributedText('Write tests'),
+          isComplete: false,
+        ),
+        ParagraphNode(
+          id: Editor.createNodeId(),
+          text: AttributedText('Deployment'),
+          metadata: {'blockType': header2Attribution},
+        ),
+        TaskNode(
+          id: Editor.createNodeId(),
+          text: AttributedText('Build for Android'),
+          isComplete: false,
+        ),
+        TaskNode(
+          id: Editor.createNodeId(),
+          text: AttributedText('Build for iOS'),
+          isComplete: false,
+        ),
+        TaskNode(
+          id: Editor.createNodeId(),
+          text: AttributedText('Deploy to stores'),
+          isComplete: false,
+        ),
+      ],
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        // Add task button
         Container(
           padding: const EdgeInsets.all(16),
-          color: Theme.of(context).colorScheme.surfaceContainerHighest,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surfaceContainerHighest,
+          ),
+          child: Row(
             children: [
-              Text(
-                'Insert New Table:',
-                style: Theme.of(context).textTheme.titleSmall,
+              FilledButton.icon(
+                onPressed: _addNewTask,
+                icon: const Icon(Icons.add),
+                label: const Text('Add New Task'),
               ),
-              const SizedBox(height: 8),
-              TableSizePicker(
-                maxRows: 6,
-                maxColumns: 6,
-                onSizeSelected: (result) {
-                  _controller.insertTable(result.rows, result.columns);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Inserted ${result.rows}×${result.columns} table'),
-                      duration: const Duration(seconds: 1),
-                    ),
+              const Spacer(),
+              ListenableBuilder(
+                listenable: _document,
+                builder: (context, _) {
+                  final tasks = _document.nodes.whereType<TaskNode>();
+                  final completed = tasks.where((t) => t.isComplete).length;
+                  final total = tasks.length;
+                  return Text(
+                    'Progress: $completed / $total tasks completed',
+                    style: Theme.of(context).textTheme.bodyMedium,
                   );
                 },
               ),
             ],
           ),
         ),
-      ],
-    );
-  }
-}
-
-/// RTL Editor Example - showcases Arabic/RTL support
-class RtlEditorExample extends StatefulWidget {
-  const RtlEditorExample({super.key});
-
-  @override
-  State<RtlEditorExample> createState() => _RtlEditorExampleState();
-}
-
-class _RtlEditorExampleState extends State<RtlEditorExample> {
-  late DocumentEditorController _controller;
-
-  @override
-  void initState() {
-    super.initState();
-    // Create a document with Arabic content
-    final document = Document([
-      ParagraphNode(
-        text: AttributedText.fromText('مرحباً بكم في محرر النصوص الفائق'),
-        blockType: BlockType.heading1,
-        alignment: TextAlign.right,
-      ),
-      ParagraphNode(
-        text: AttributedText.fromText(
-          'هذا محرر مستندات Flutter أصلي مبني على بنية Document/Node.',
+        // Progress bar
+        ListenableBuilder(
+          listenable: _document,
+          builder: (context, _) {
+            final tasks = _document.nodes.whereType<TaskNode>();
+            final completed = tasks.where((t) => t.isComplete).length;
+            final total = tasks.length;
+            final progress = total > 0 ? completed / total : 0.0;
+            return LinearProgressIndicator(
+              value: progress,
+              minHeight: 6,
+              backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+            );
+          },
         ),
-        alignment: TextAlign.right,
-      ),
-      ParagraphNode(
-        text: AttributedText.fromText('الميزات الرئيسية'),
-        blockType: BlockType.heading2,
-        alignment: TextAlign.right,
-      ),
-      ListItemNode.fromText('بنية قائمة على المستندات'),
-      ListItemNode.fromText('تنسيق النص الغني'),
-      ListItemNode.fromText('دعم الجداول'),
-      ListItemNode.fromText('التراجع والإعادة'),
-      ListItemNode.fromText('تصدير واستيراد HTML و JSON'),
-      ParagraphNode(
-        text: AttributedText.fromText('جرب تحرير هذا المستند!'),
-        blockType: BlockType.blockquote,
-        alignment: TextAlign.right,
-      ),
-      _createArabicTable(),
-    ]);
-    _controller = DocumentEditorController(document: document);
-  }
-
-  TableNode _createArabicTable() {
-    return TableNode(
-      cells: [
-        [
-          TableCell.fromText('الميزة'),
-          TableCell.fromText('الحالة'),
-          TableCell.fromText('ملاحظات'),
-        ],
-        [
-          TableCell.fromText('النص الغني'),
-          TableCell.fromText('✓'),
-          TableCell.fromText('غامق، مائل، تحته خط'),
-        ],
-        [
-          TableCell.fromText('الجداول'),
-          TableCell.fromText('✓'),
-          TableCell.fromText('إضافة/حذف صفوف وأعمدة'),
-        ],
-        [
-          TableCell.fromText('القوائم'),
-          TableCell.fromText('✓'),
-          TableCell.fromText('نقطية ورقمية'),
-        ],
-      ],
-      hasHeader: true,
-    );
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        // Toolbar
-        EditorToolbar(
-          controller: _controller,
-        ),
-        // RTL Editor
+        // Editor
         Expanded(
-          child: DocumentEditor(
-            controller: _controller,
-            placeholder: 'ابدأ الكتابة...',
-            padding: const EdgeInsets.all(16),
-            textDirection: TextDirection.rtl,
-          ),
-        ),
-        // Info bar
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          color: Theme.of(context).colorScheme.surfaceContainerHighest,
-          child: Row(
-            children: [
-              const Icon(Icons.info_outline, size: 16),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  'This example demonstrates RTL (Right-to-Left) support for Arabic and other RTL languages.',
-                  style: Theme.of(context).textTheme.bodySmall,
+          child: SuperEditor(
+            editor: _editor,
+            document: _document,
+            composer: _composer,
+            stylesheet: defaultStylesheet.copyWith(
+              addRulesAfter: [
+                StyleRule(
+                  BlockSelector.all,
+                  (doc, docNode) => {
+                    Styles.padding: const CascadingPadding.symmetric(
+                      horizontal: 32,
+                      vertical: 8,
+                    ),
+                  },
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ],
     );
   }
+
+  void _addNewTask() {
+    // Find the last task node or insert at the end
+    int insertIndex = _document.nodeCount;
+    for (int i = _document.nodeCount - 1; i >= 0; i--) {
+      if (_document.getNodeAt(i) is TaskNode) {
+        insertIndex = i + 1;
+        break;
+      }
+    }
+
+    _editor.execute([
+      InsertNodeAtIndexRequest(
+        nodeIndex: insertIndex,
+        node: TaskNode(
+          id: Editor.createNodeId(),
+          text: AttributedText('New task'),
+          isComplete: false,
+        ),
+      ),
+    ]);
+  }
 }
 
-/// Export Example - showcases HTML and JSON export
-class ExportExample extends StatefulWidget {
-  const ExportExample({super.key});
+// ============================================================================
+// Demo 4: Custom Styles
+// ============================================================================
+
+class CustomStylesDemo extends StatefulWidget {
+  const CustomStylesDemo({super.key});
 
   @override
-  State<ExportExample> createState() => _ExportExampleState();
+  State<CustomStylesDemo> createState() => _CustomStylesDemoState();
 }
 
-class _ExportExampleState extends State<ExportExample> {
-  late DocumentEditorController _controller;
-  String _htmlOutput = '';
-  String _jsonOutput = '';
-  bool _showHtml = true;
+class _CustomStylesDemoState extends State<CustomStylesDemo> {
+  late MutableDocument _document;
+  late MutableDocumentComposer _composer;
+  late Editor _editor;
+  bool _useDarkStyle = false;
 
   @override
   void initState() {
     super.initState();
-    final document = Document([
-      ParagraphNode(
-        text: AttributedText.fromText('Export Demo'),
-        blockType: BlockType.heading1,
-      ),
-      ParagraphNode(
-        text: AttributedText.fromText(
-          'Edit this document and see the HTML/JSON output below.',
+    _document = _createStyledDocument();
+    _composer = MutableDocumentComposer();
+    _editor = createDefaultDocumentEditor(
+      document: _document,
+      composer: _composer,
+    );
+  }
+
+  MutableDocument _createStyledDocument() {
+    return MutableDocument(
+      nodes: [
+        ParagraphNode(
+          id: Editor.createNodeId(),
+          text: AttributedText('Custom Styled Editor'),
+          metadata: {'blockType': header1Attribution},
         ),
-      ),
-      ListItemNode.fromText('First item', listType: ListType.numbered),
-      ListItemNode.fromText('Second item', listType: ListType.numbered),
-      ListItemNode.fromText('Third item', listType: ListType.numbered),
-      ParagraphNode(
-        text: AttributedText.fromText('Sample Table'),
-        blockType: BlockType.heading3,
-      ),
-      TableNode(
-        cells: [
-          [TableCell.fromText('A1'), TableCell.fromText('B1')],
-          [TableCell.fromText('A2'), TableCell.fromText('B2')],
+        ParagraphNode(
+          id: Editor.createNodeId(),
+          text: AttributedText(
+            'Super Editor allows extensive customization of document styles. '
+            'Toggle the switch above to see different style presets.',
+          ),
+        ),
+        ParagraphNode(
+          id: Editor.createNodeId(),
+          text: AttributedText('Style Features'),
+          metadata: {'blockType': header2Attribution},
+        ),
+        ListItemNode.unordered(
+          id: Editor.createNodeId(),
+          text: AttributedText('Custom fonts and typography'),
+        ),
+        ListItemNode.unordered(
+          id: Editor.createNodeId(),
+          text: AttributedText('Configurable colors and backgrounds'),
+        ),
+        ListItemNode.unordered(
+          id: Editor.createNodeId(),
+          text: AttributedText('Adjustable padding and spacing'),
+        ),
+        ListItemNode.unordered(
+          id: Editor.createNodeId(),
+          text: AttributedText('Custom block decorations'),
+        ),
+        ParagraphNode(
+          id: Editor.createNodeId(),
+          text: AttributedText(
+            'This is a blockquote with custom styling applied.',
+          ),
+          metadata: {'blockType': blockquoteAttribution},
+        ),
+        HorizontalRuleNode(id: Editor.createNodeId()),
+        ParagraphNode(
+          id: Editor.createNodeId(),
+          text: AttributedText(
+            'The styling system in Super Editor is based on cascading style rules, '
+            'similar to CSS. This makes it easy to create consistent document themes.',
+          ),
+        ),
+      ],
+    );
+  }
+
+  Stylesheet get _lightStylesheet => defaultStylesheet.copyWith(
+        addRulesAfter: [
+          StyleRule(
+            BlockSelector.all,
+            (doc, docNode) => {
+              Styles.padding: const CascadingPadding.symmetric(
+                horizontal: 40,
+                vertical: 12,
+              ),
+            },
+          ),
+          StyleRule(
+            const BlockSelector('header1'),
+            (doc, docNode) => {
+              Styles.textStyle: const TextStyle(
+                color: Colors.indigo,
+                fontSize: 32,
+                fontWeight: FontWeight.bold,
+              ),
+            },
+          ),
+          StyleRule(
+            const BlockSelector('header2'),
+            (doc, docNode) => {
+              Styles.textStyle: const TextStyle(
+                color: Colors.indigo,
+                fontSize: 24,
+                fontWeight: FontWeight.w600,
+              ),
+            },
+          ),
+          StyleRule(
+            const BlockSelector('blockquote'),
+            (doc, docNode) => {
+              Styles.textStyle: const TextStyle(
+                color: Colors.grey,
+                fontSize: 18,
+                fontStyle: FontStyle.italic,
+              ),
+            },
+          ),
         ],
-        hasHeader: true,
-      ),
-    ]);
-    _controller = DocumentEditorController(document: document);
-    _controller.addListener(_updateOutput);
-    _updateOutput();
-  }
+      );
 
-  void _updateOutput() {
-    setState(() {
-      final exporter = HtmlExporter();
-      _htmlOutput = exporter.export(_controller.document);
-
-      final serializer = DocumentSerializer();
-      _jsonOutput = serializer.serialize(_controller.document, pretty: true);
-    });
-  }
-
-  @override
-  void dispose() {
-    _controller.removeListener(_updateOutput);
-    _controller.dispose();
-    super.dispose();
-  }
+  Stylesheet get _darkStylesheet => Stylesheet(
+        rules: [
+          StyleRule(
+            BlockSelector.all,
+            (doc, docNode) => {
+              Styles.padding: const CascadingPadding.symmetric(
+                horizontal: 40,
+                vertical: 12,
+              ),
+              Styles.textStyle: const TextStyle(
+                color: Colors.white70,
+                fontSize: 16,
+                height: 1.6,
+              ),
+            },
+          ),
+          StyleRule(
+            const BlockSelector('header1'),
+            (doc, docNode) => {
+              Styles.textStyle: const TextStyle(
+                color: Colors.amber,
+                fontSize: 32,
+                fontWeight: FontWeight.bold,
+              ),
+            },
+          ),
+          StyleRule(
+            const BlockSelector('header2'),
+            (doc, docNode) => {
+              Styles.textStyle: const TextStyle(
+                color: Colors.amber,
+                fontSize: 24,
+                fontWeight: FontWeight.w600,
+              ),
+            },
+          ),
+          StyleRule(
+            const BlockSelector('blockquote'),
+            (doc, docNode) => {
+              Styles.textStyle: const TextStyle(
+                color: Colors.white54,
+                fontSize: 18,
+                fontStyle: FontStyle.italic,
+              ),
+            },
+          ),
+          StyleRule(
+            const BlockSelector('listItem'),
+            (doc, docNode) => {
+              Styles.textStyle: const TextStyle(
+                color: Colors.white70,
+                fontSize: 16,
+              ),
+            },
+          ),
+        ],
+      );
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
-        // Toolbar
-        EditorToolbar(
-          controller: _controller,
-        ),
-        // Editor (compact)
-        SizedBox(
-          height: 180,
-          child: DocumentEditor(
-            controller: _controller,
-            padding: const EdgeInsets.all(16),
-          ),
-        ),
-        // Output toggle
+        // Style toggle
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          color: Theme.of(context).colorScheme.surfaceContainerHighest,
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surfaceContainerHighest,
+          ),
           child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              SegmentedButton<bool>(
-                segments: const [
-                  ButtonSegment(value: true, label: Text('HTML')),
-                  ButtonSegment(value: false, label: Text('JSON')),
-                ],
-                selected: {_showHtml},
-                onSelectionChanged: (value) {
+              const Text('Light Style'),
+              const SizedBox(width: 12),
+              Switch(
+                value: _useDarkStyle,
+                onChanged: (value) {
                   setState(() {
-                    _showHtml = value.first;
+                    _useDarkStyle = value;
                   });
                 },
               ),
-              const Spacer(),
-              Text(
-                '${_showHtml ? _htmlOutput.length : _jsonOutput.length} chars',
-                style: Theme.of(context).textTheme.bodySmall,
+              const SizedBox(width: 12),
+              const Text('Dark Style'),
+            ],
+          ),
+        ),
+        // Editor with custom styles
+        Expanded(
+          child: Container(
+            color: _useDarkStyle ? const Color(0xFF1E1E1E) : Colors.white,
+            child: SuperEditor(
+              editor: _editor,
+              document: _document,
+              composer: _composer,
+              stylesheet: _useDarkStyle ? _darkStylesheet : _lightStylesheet,
+              documentOverlayBuilders: [
+                DefaultCaretOverlayBuilder(
+                  caretStyle: CaretStyle(
+                    color: _useDarkStyle ? Colors.amber : Colors.indigo,
+                    width: 2,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// ============================================================================
+// Demo 5: Read-Only Document Viewer
+// ============================================================================
+
+class ReadOnlyDemo extends StatefulWidget {
+  const ReadOnlyDemo({super.key});
+
+  @override
+  State<ReadOnlyDemo> createState() => _ReadOnlyDemoState();
+}
+
+class _ReadOnlyDemoState extends State<ReadOnlyDemo> {
+  late MutableDocument _document;
+
+  @override
+  void initState() {
+    super.initState();
+    _document = _createReadOnlyDocument();
+  }
+
+  MutableDocument _createReadOnlyDocument() {
+    return MutableDocument(
+      nodes: [
+        ParagraphNode(
+          id: Editor.createNodeId(),
+          text: AttributedText('Read-Only Document'),
+          metadata: {'blockType': header1Attribution},
+        ),
+        ParagraphNode(
+          id: Editor.createNodeId(),
+          text: AttributedText(
+            'This document is displayed in read-only mode using SuperReader. '
+            'Users can view and select text, but cannot edit it.',
+          ),
+        ),
+        HorizontalRuleNode(id: Editor.createNodeId()),
+        ParagraphNode(
+          id: Editor.createNodeId(),
+          text: AttributedText('Use Cases'),
+          metadata: {'blockType': header2Attribution},
+        ),
+        ListItemNode.unordered(
+          id: Editor.createNodeId(),
+          text: AttributedText('Documentation viewers'),
+        ),
+        ListItemNode.unordered(
+          id: Editor.createNodeId(),
+          text: AttributedText('Article readers'),
+        ),
+        ListItemNode.unordered(
+          id: Editor.createNodeId(),
+          text: AttributedText('Terms of service displays'),
+        ),
+        ListItemNode.unordered(
+          id: Editor.createNodeId(),
+          text: AttributedText('Preview modes in editors'),
+        ),
+        ListItemNode.unordered(
+          id: Editor.createNodeId(),
+          text: AttributedText('Export previews'),
+        ),
+        ParagraphNode(
+          id: Editor.createNodeId(),
+          text: AttributedText('Features'),
+          metadata: {'blockType': header2Attribution},
+        ),
+        ParagraphNode(
+          id: Editor.createNodeId(),
+          text: AttributedText(
+            'SuperReader supports all the same document content as SuperEditor, '
+            'including rich text, lists, images, tasks, and more. '
+            'The only difference is that editing is disabled.',
+          ),
+        ),
+        ParagraphNode(
+          id: Editor.createNodeId(),
+          text: AttributedText(
+            'Users can still select and copy text, which is useful for sharing content.',
+          ),
+          metadata: {'blockType': blockquoteAttribution},
+        ),
+        ParagraphNode(
+          id: Editor.createNodeId(),
+          text: AttributedText(
+            'Try selecting some text in this document - you can copy it, '
+            'but you cannot modify it.',
+          ),
+        ),
+      ],
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        // Info banner
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.primaryContainer,
+          ),
+          child: Row(
+            children: [
+              Icon(
+                Icons.info,
+                color: Theme.of(context).colorScheme.primary,
               ),
-              const SizedBox(width: 8),
-              IconButton(
-                icon: const Icon(Icons.copy),
-                tooltip: 'Copy to clipboard',
-                onPressed: () {
-                  Clipboard.setData(ClipboardData(
-                    text: _showHtml ? _htmlOutput : _jsonOutput,
-                  ));
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Copied to clipboard!'),
-                      duration: Duration(seconds: 1),
-                    ),
-                  );
-                },
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  'This document is in read-only mode. You can select and copy text, but not edit it.',
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onPrimaryContainer,
+                  ),
+                ),
               ),
             ],
           ),
         ),
-        // Output
+        // Read-only document viewer
         Expanded(
-          child: Container(
-            color: Colors.grey.shade900,
-            padding: const EdgeInsets.all(16),
-            child: SingleChildScrollView(
-              child: SelectableText(
-                _showHtml ? _htmlOutput : _jsonOutput,
-                style: const TextStyle(
-                  fontFamily: 'monospace',
-                  fontSize: 12,
-                  color: Colors.white,
+          child: SuperReader(
+            document: _document,
+            stylesheet: defaultStylesheet.copyWith(
+              addRulesAfter: [
+                StyleRule(
+                  BlockSelector.all,
+                  (doc, docNode) => {
+                    Styles.padding: const CascadingPadding.symmetric(
+                      horizontal: 32,
+                      vertical: 12,
+                    ),
+                  },
                 ),
+              ],
+            ),
+          ),
+        ),
+        // Footer
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          color: Theme.of(context).colorScheme.surfaceContainerHighest,
+          child: Row(
+            children: [
+              const Icon(Icons.article_outlined, size: 20),
+              const SizedBox(width: 8),
+              Text(
+                'Document nodes: ${_document.nodeCount}',
+                style: Theme.of(context).textTheme.bodySmall,
               ),
-            ),
+              const Spacer(),
+              TextButton.icon(
+                onPressed: () {
+                  // Copy all text to clipboard
+                  final buffer = StringBuffer();
+                  for (final node in _document.nodes) {
+                    if (node is TextNode) {
+                      buffer.writeln(node.text.text);
+                    }
+                  }
+                  Clipboard.setData(ClipboardData(text: buffer.toString()));
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Document copied to clipboard'),
+                      duration: Duration(seconds: 2),
+                    ),
+                  );
+                },
+                icon: const Icon(Icons.copy, size: 18),
+                label: const Text('Copy All'),
+              ),
+            ],
           ),
         ),
       ],
@@ -596,139 +1411,45 @@ class _ExportExampleState extends State<ExportExample> {
   }
 }
 
-/// Link dialog
-class _LinkDialog extends StatefulWidget {
-  final void Function(String url, String text) onInsert;
+// ============================================================================
+// Toolbar Widgets
+// ============================================================================
 
-  const _LinkDialog({required this.onInsert});
+class _ToolbarButton extends StatelessWidget {
+  final IconData icon;
+  final String tooltip;
+  final VoidCallback onPressed;
 
-  @override
-  State<_LinkDialog> createState() => _LinkDialogState();
-}
-
-class _LinkDialogState extends State<_LinkDialog> {
-  final _urlController = TextEditingController();
-  final _textController = TextEditingController();
-
-  @override
-  void dispose() {
-    _urlController.dispose();
-    _textController.dispose();
-    super.dispose();
-  }
+  const _ToolbarButton({
+    required this.icon,
+    required this.tooltip,
+    required this.onPressed,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
-      title: const Text('Insert Link'),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          TextField(
-            controller: _urlController,
-            decoration: const InputDecoration(
-              labelText: 'URL',
-              hintText: 'https://example.com',
-              prefixIcon: Icon(Icons.link),
-            ),
-            keyboardType: TextInputType.url,
-          ),
-          const SizedBox(height: 16),
-          TextField(
-            controller: _textController,
-            decoration: const InputDecoration(
-              labelText: 'Link Text',
-              hintText: 'Click here',
-              prefixIcon: Icon(Icons.text_fields),
-            ),
-          ),
-        ],
+    return IconButton(
+      icon: Icon(icon, size: 20),
+      tooltip: tooltip,
+      onPressed: onPressed,
+      style: IconButton.styleFrom(
+        minimumSize: const Size(36, 36),
+        padding: const EdgeInsets.all(8),
       ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Cancel'),
-        ),
-        FilledButton(
-          onPressed: () {
-            if (_urlController.text.isNotEmpty) {
-              widget.onInsert(
-                _urlController.text,
-                _textController.text.isEmpty ? _urlController.text : _textController.text,
-              );
-            }
-            Navigator.of(context).pop();
-          },
-          child: const Text('Insert'),
-        ),
-      ],
     );
   }
 }
 
-/// Image dialog
-class _ImageDialog extends StatefulWidget {
-  final void Function(String url, String alt) onInsert;
-
-  const _ImageDialog({required this.onInsert});
-
-  @override
-  State<_ImageDialog> createState() => _ImageDialogState();
-}
-
-class _ImageDialogState extends State<_ImageDialog> {
-  final _urlController = TextEditingController();
-  final _altController = TextEditingController();
-
-  @override
-  void dispose() {
-    _urlController.dispose();
-    _altController.dispose();
-    super.dispose();
-  }
+class _ToolbarDivider extends StatelessWidget {
+  const _ToolbarDivider();
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
-      title: const Text('Insert Image'),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          TextField(
-            controller: _urlController,
-            decoration: const InputDecoration(
-              labelText: 'Image URL',
-              hintText: 'https://example.com/image.png',
-              prefixIcon: Icon(Icons.image),
-            ),
-            keyboardType: TextInputType.url,
-          ),
-          const SizedBox(height: 16),
-          TextField(
-            controller: _altController,
-            decoration: const InputDecoration(
-              labelText: 'Alt Text (optional)',
-              hintText: 'Image description',
-              prefixIcon: Icon(Icons.description),
-            ),
-          ),
-        ],
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Cancel'),
-        ),
-        FilledButton(
-          onPressed: () {
-            if (_urlController.text.isNotEmpty) {
-              widget.onInsert(_urlController.text, _altController.text);
-            }
-            Navigator.of(context).pop();
-          },
-          child: const Text('Insert'),
-        ),
-      ],
+    return Container(
+      height: 24,
+      width: 1,
+      margin: const EdgeInsets.symmetric(horizontal: 4),
+      color: Theme.of(context).dividerColor,
     );
   }
 }

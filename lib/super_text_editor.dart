@@ -41,6 +41,9 @@
 /// ```
 library super_text_editor;
 
+// Re-export super_editor for convenience
+export 'package:super_editor/super_editor.dart';
+
 // Core - Document
 export 'src/core/document/document.dart';
 export 'src/core/document/nodes.dart';
