@@ -1,9 +1,9 @@
 /// A powerful native Flutter document editor with support for rich text,
-/// tables, lists, and more. Built on a Document/Node architecture without WebView.
+/// tables, lists, and more. Built on super_editor with additional features.
 ///
 /// ## Features
 ///
-/// - Document-based architecture (Document = List of Blocks/Nodes)
+/// - Built on super_editor for robust document editing
 /// - Rich text formatting: Bold, Italic, Underline, Strikethrough
 /// - Paragraph styles: Headings (H1-H6), Blockquote, Preformatted
 /// - Text alignment: Left, Center, Right, Justify
@@ -22,62 +22,27 @@
 /// ```dart
 /// import 'package:super_text_editor/super_text_editor.dart';
 ///
-/// // Basic usage
-/// DocumentEditor(
-///   placeholder: 'Start typing...',
-///   onChanged: () => print('Document changed'),
+/// // Use SuperEditor from super_editor package
+/// SuperEditor(
+///   editor: editor,
+///   document: document,
+///   composer: composer,
 /// )
 ///
-/// // With controller
-/// final controller = DocumentEditorController();
-/// DocumentEditor(controller: controller)
-///
-/// // Export to HTML
-/// final htmlExporter = HtmlExporter();
-/// final html = htmlExporter.export(controller.document);
-///
-/// // Export to JSON
-/// final json = controller.document.toJson();
+/// // Use additional utilities
+/// final picker = TableSizePicker(onSizeSelected: (size) => print(size));
 /// ```
 library super_text_editor;
 
-// Re-export super_editor for convenience
+// Re-export super_editor for full functionality
 export 'package:super_editor/super_editor.dart';
 
-// Core - Document
-export 'src/core/document/document.dart';
-export 'src/core/document/nodes.dart';
-export 'src/core/document/attributed_text.dart';
-
-// Core - Selection
-export 'src/core/selection/editor_selection.dart';
-
-// Core - Commands
-export 'src/core/commands/editor_command.dart';
-
-// Core - History
-export 'src/core/history/undo_redo.dart';
-
-// UI - Editor
-export 'src/ui/editor/document_editor.dart';
-
-// UI - Toolbar
-export 'src/ui/toolbar/editor_toolbar.dart';
-
-// UI - Components
-export 'src/ui/components/paragraph_component.dart';
-export 'src/ui/components/list_item_component.dart';
-export 'src/ui/components/table_component.dart';
-export 'src/ui/components/image_component.dart';
-export 'src/ui/components/horizontal_rule_component.dart';
-export 'src/ui/components/code_block_component.dart';
-
-// UI - Pickers
+// UI - Pickers (additional utilities)
 export 'src/ui/pickers/table_size_picker.dart';
 
-// IO - HTML
+// IO - HTML (additional utilities)
 export 'src/io/html/html_exporter.dart';
 export 'src/io/html/html_importer.dart';
 
-// IO - JSON
+// IO - JSON (additional utilities)
 export 'src/io/json/document_serializer.dart';

@@ -302,7 +302,7 @@ class _FullEditorDemoState extends State<FullEditorDemo> {
             onPressed: () => _setBlockType(header3Attribution),
           ),
           _ToolbarButton(
-            icon: Icons.format_paragraph,
+            icon: Icons.notes,
             tooltip: 'Paragraph',
             onPressed: () => _setBlockType(null),
           ),

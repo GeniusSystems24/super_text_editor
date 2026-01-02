@@ -1,13 +1,8 @@
+import 'dart:ui' show TextAlign;
 import 'document.dart';
 import 'attributed_text.dart';
 
-/// Text alignment options
-enum TextAlign {
-  left,
-  center,
-  right,
-  justify,
-}
+export 'dart:ui' show TextAlign;
 
 /// Block style for paragraphs
 enum BlockType {
@@ -25,7 +20,10 @@ enum BlockType {
 /// List type
 enum ListType {
   bullet,
-  numbered,
+  numbered;
+
+  /// Whether this is an ordered list type
+  bool get isOrdered => this == ListType.numbered;
 }
 
 /// Base class for all document nodes
